@@ -1,0 +1,225 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Модули — EduSpace{% endblock %}
+{% block page_title %}Управление модулями{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Заголовок и кнопка добавления -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Управление модулями</h1>
+            <p class="text-gray-600 mt-1">Всего модулей: {{ total_modules }}</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ url_for('admin_create_module') }}"
+               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-150">
+                <i class="fas fa-plus mr-2"></i> Создать модуль
+            </a>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <form method="get" class="space-y-4 md:space-y-0 md:flex md:items-end md:gap-4">
+            <!-- Поиск -->
+            <div class="flex-1">
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
+                    Поиск по названию
+                </label>
+                <input type="text" id="search" name="search" value="{{ search }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="Название модуля или курса...">
+            </div>
+
+            <!-- Фильтр по курсу -->
+            <div class="w-full md:w-64">
+                <label for="course_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Фильтр по курсу
+                </label>
+                <select id="course_id" name="course_id"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Все курсы</option>
+                    {% for course in courses %}
+                        <option value="{{ course.id }}" {% if course.id|string == course_id %}selected{% endif %}>
+                            {{ course.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Кнопки фильтрации -->
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-150">
+                    <i class="fas fa-filter mr-2"></i> Применить
+                </button>
+                <a href="{{ url_for('admin_modules') }}"
+                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-150">
+                    <i class="fas fa-times mr-2"></i> Сбросить
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {% if modules %}
+        <!-- Таблица модулей -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Название модуля
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Курс
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Порядок
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Материалы / Тесты
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Дата создания
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Действия
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for module in modules %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ module.title }}</div>
+                                    {% if module.short_description %}
+                                        <div class="text-sm text-gray-500 mt-1">{{ module.short_description|truncate(100) }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ module.course_title }}</div>
+                                    <div class="text-xs text-gray-500">
+                                        {% if module.course_active %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Активный
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                Неактивный
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ module.module_order }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-center">
+                                            <div class="text-lg font-semibold text-blue-600">{{ module.materials_count }}</div>
+                                            <div class="text-xs text-gray-500">Материалы</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-lg font-semibold text-green-600">{{ module.tests_count }}</div>
+                                            <div class="text-xs text-gray-500">Тесты</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ module.created_at[:10] if module.created_at else '' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex items-center space-x-2">
+                                        <a href="{{ url_for('admin_view_module', module_id=module.id) }}"
+                                           class="text-blue-600 hover:text-blue-900"
+                                           title="Просмотр">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin_edit_module', module_id=module.id) }}"
+                                           class="text-yellow-600 hover:text-yellow-900"
+                                           title="Редактировать">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post" action="{{ url_for('admin_delete_module', module_id=module.id) }}"
+                                              onsubmit="return confirm('Вы уверены, что хотите удалить этот модуль?');"
+                                              class="inline">
+                                            <button type="submit"
+                                                    class="text-red-600 hover:text-red-900"
+                                                    title="Удалить">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Пагинация -->
+            {% if total_pages > 1 %}
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-700">
+Показано с {{ ((page - 1) * per_page) + 1 }} по {{ [page * per_page, total_modules]|min }} из {{ total_modules }}                        </div>
+                        <div class="flex space-x-2">
+                            {% if page > 1 %}
+                                <a href="{{ url_for('admin_modules', page=page-1, search=search, course_id=course_id) }}"
+                                   class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-chevron-left mr-1"></i> Назад
+                                </a>
+                            {% endif %}
+
+                            {% for p in range(1, total_pages + 1) %}
+                                {% if p >= page - 2 and p <= page + 2 %}
+                                    <a href="{{ url_for('admin_modules', page=p, search=search, course_id=course_id) }}"
+                                       class="px-3 py-1 border rounded-md text-sm {% if p == page %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">
+                                        {{ p }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page < total_pages %}
+                                <a href="{{ url_for('admin_modules', page=page+1, search=search, course_id=course_id) }}"
+                                   class="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50">
+                                    Вперед <i class="fas fa-chevron-right ml-1"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <!-- Сообщение об отсутствии модулей -->
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-layer-group text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Модули не найдены</h3>
+            <p class="text-gray-500 mb-6">
+                {% if search or course_id %}
+                    Попробуйте изменить параметры поиска
+                {% else %}
+                    Создайте первый модуль для любого курса
+                {% endif %}
+            </p>
+            <div class="space-x-3">
+                <a href="{{ url_for('admin_create_module') }}"
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-150">
+                    <i class="fas fa-plus mr-2"></i> Создать модуль
+                </a>
+                {% if search or course_id %}
+                    <a href="{{ url_for('admin_modules') }}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-150">
+                        <i class="fas fa-times mr-2"></i> Сбросить фильтры
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

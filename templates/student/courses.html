@@ -1,0 +1,363 @@
+<!-- templates/student/courses.html -->
+{% extends "student/base.html" %}
+
+{% block title %}Мои курсы — EduSpace{% endblock %}
+
+{% block extra_css %}
+<style>
+    .courses-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .debug-info {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4f46e5;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 30px;
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        color: #9ca3af;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+    }
+
+    .empty-state-description {
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+    }
+
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .course-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .course-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+    }
+
+    .course-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .course-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+    }
+
+    .course-description {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+
+    .course-footer {
+        padding: 16px 20px;
+        background: #f8fafc;
+    }
+
+    .progress-container {
+        margin-bottom: 12px;
+    }
+
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+    }
+
+    .progress-percent {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .course-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .status-active {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+    }
+
+    .status-completed {
+        background: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
+    }
+
+    .btn-enroll {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 10px 16px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .btn-enroll:hover {
+        background: #4338ca;
+        transform: translateY(-1px);
+    }
+
+    .btn-enroll i {
+        margin-right: 8px;
+    }
+
+    .enroll-date {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 8px;
+    }
+
+    .test-results {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 8px;
+    }
+
+    .score-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        background: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
+        border-radius: 12px;
+        font-weight: 500;
+        margin-left: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="courses-container">
+    <h1 class="page-title">Мои курсы</h1>
+    <p class="page-description">
+        Здесь вы можете просмотреть свои курсы или записаться на новые
+    </p>
+
+    <!-- Отладочная информация -->
+    <div class="debug-info">
+        <strong>Отладка:</strong> Найдено записанных курсов: {{ enrolled_courses|length }}, доступных курсов: {{ available_courses|length }}
+        {% if enrolled_courses|length == 0 and available_courses|length == 0 %}
+        <div style="margin-top: 8px;">
+            <strong>Тестирование:</strong> У вас пока нет записанных курсов. Для демонстрации работы системы вы можете записаться на демо-курсы.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Записанные курсы -->
+    {% if enrolled_courses|length > 0 %}
+        <h2 class="section-title">Мои активные курсы</h2>
+        <div class="courses-grid">
+            {% for course_data in enrolled_courses %}
+                {% set course = course_data.course %}
+                {% set progress = course_data.progress %}
+                <div class="course-card">
+                    <div class="course-header">
+                        <h3 class="course-title">{{ course.title }}</h3>
+                        {% if course.short_description %}
+                            <p class="course-description">{{ course.short_description }}</p>
+                        {% endif %}
+
+                        <div class="course-status {% if progress.status == 'completed' %}status-completed{% else %}status-active{% endif %}">
+                            <i class="fas {% if progress.status == 'completed' %}fa-check-circle{% else %}fa-spinner{% endif %} mr-2"></i>
+                            {{ 'Завершен' if progress.status == 'completed' else 'В процессе' }}
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <div class="progress-container">
+                            <div class="progress-info">
+                                <span>Прогресс:</span>
+                                <span class="progress-percent">{{ progress.progress_percent|round(1) }}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ progress.progress_percent }}%;"></div>
+                            </div>
+                        </div>
+
+                        {% if progress.enrolled_at %}
+                            <div class="enroll-date">
+                                <i class="far fa-calendar-alt mr-2"></i>
+                                Записан: {{ progress.enrolled_at|format_date if progress.enrolled_at else '' }}
+                            </div>
+                        {% endif %}
+
+                        {% if progress.final_score %}
+                            <div class="test-results">
+                                <i class="fas fa-star mr-2"></i>
+                                Финальный балл:
+                                <span class="score-badge">{{ progress.final_score|round(2) }}</span>
+                            </div>
+                        {% endif %}
+
+                        <a href="{{ url_for('student_course_detail', course_id=course.id) }}"
+                           class="btn-enroll">
+                            <i class="fas fa-book-open mr-2"></i>
+                            Продолжить обучение
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3 class="empty-state-title">Вы еще не записались ни на один курс</h3>
+            <p class="empty-state-description">
+                Найдите интересующий вас курс в списке ниже и запишитесь на него.
+            </p>
+        </div>
+    {% endif %}
+
+    <!-- Доступные курсы -->
+    {% if available_courses|length > 0 %}
+        <h2 class="section-title">Доступные для записи курсы</h2>
+        <div class="courses-grid">
+            {% for course in available_courses %}
+                <div class="course-card">
+                    <div class="course-header">
+                        <h3 class="course-title">{{ course.title }}</h3>
+                        {% if course.short_description %}
+                            <p class="course-description">{{ course.short_description }}</p>
+                        {% endif %}
+                        <div style="margin-top: 8px; color: #666; font-size: 0.9rem;">
+                            <i class="fas fa-clock mr-2"></i>
+                            {% if course.estimated_duration %}
+                                Продолжительность: {{ course.estimated_duration }} часов
+                            {% else %}
+                                Продолжительность: не указана
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="course-footer">
+                        <button onclick="enrollCourse('{{ course.id }}')"
+                                class="btn-enroll"
+                                {% if course.id.startswith('demo_') %}data-demo="true"{% endif %}>
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            {% if course.id.startswith('demo_') %}
+                                Записаться на демо-курс
+                            {% else %}
+                                Записаться на курс
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        {% if enrolled_courses|length == 0 %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="empty-state-title">Нет доступных курсов</h3>
+                <p class="empty-state-description">
+                    В данный момент нет доступных для записи курсов.
+                </p>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function enrollCourse(courseId) {
+        if (confirm('Записаться на курс?')) {
+            fetch(`/api/enroll/${courseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Вы успешно записались на курс!');
+                    location.reload();
+                } else {
+                    alert(data.message || 'Ошибка при записи на курс');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Произошла ошибка при записи на курс');
+            });
+        }
+    }
+</script>
+{% endblock %}

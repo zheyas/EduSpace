@@ -1,0 +1,135 @@
+{% extends "student/base.html" %}
+
+{% block title %}Мой прогресс - EduSpace{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Заголовок -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Мой прогресс</h1>
+        <p class="mt-2 text-gray-600">Детальная информация о вашем обучении и достижениях</p>
+    </div>
+
+    <!-- Общая статистика -->
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Общая статистика</h2>
+        {% if test_analytics and test_analytics.total_tests > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg shadow p-6 text-white">
+                <div class="text-3xl font-bold">{{ detailed_stats|length }}</div>
+                <div class="text-sm font-medium opacity-90">Курсов</div>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-500 to-teal-500 rounded-lg shadow p-6 text-white">
+                <div class="text-3xl font-bold">{{ test_analytics.total_tests }}</div>
+                <div class="text-sm font-medium opacity-90">Пройдено тестов</div>
+            </div>
+
+            <div class="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow p-6 text-white">
+                <div class="text-3xl font-bold">{{ test_analytics.average_score }}%</div>
+                <div class="text-sm font-medium opacity-90">Средний балл</div>
+            </div>
+
+            <div class="bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg shadow p-6 text-white">
+                <div class="text-3xl font-bold">{{ test_analytics.total_time_hours|round(1) }}</div>
+                <div class="text-sm font-medium opacity-90">Часов обучения</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Прогресс по курсам -->
+    {% if detailed_stats %}
+    <div class="space-y-8">
+        {% for course_data in detailed_stats %}
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-gray-900">{{ course_data.course.title }}</h2>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-lg font-bold {% if course_data.progress.progress_percent >= 80 %}text-green-600{% elif course_data.progress.progress_percent >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ course_data.progress.progress_percent|round(1) }}%
+                        </span>
+                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium {% if course_data.progress.status == 'completed' %}bg-green-100 text-green-800{% elif course_data.progress.status == 'active' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ course_data.progress.status }}
+                        </span>
+                    </div>
+                </div>
+                <p class="mt-1 text-gray-600">{{ course_data.course.short_description }}</p>
+            </div>
+
+            <!-- Прогресс по модулям -->
+            {% if course_data.modules %}
+            <div class="divide-y divide-gray-200">
+                {% for module_data in course_data.modules %}
+                <div class="px-6 py-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <h3 class="text-lg font-medium text-gray-900">{{ module_data.module.title }}</h3>
+                            <span class="ml-2 text-sm text-gray-500">(порядок: {{ module_data.module.module_order }})</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium {% if module_data.progress.status == 'completed' %}text-green-600{% elif module_data.progress.status == 'in_progress' %}text-blue-600{% else %}text-gray-600{% endif %}">
+                                {{ module_data.progress.status }}
+                            </span>
+                            <span class="text-sm text-gray-500">{{ module_data.progress.progress_percent|round(1) }}%</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div class="bg-indigo-600 h-2 rounded-full progress-animate" style="width: {{ module_data.progress.progress_percent }}%"></div>
+                    </div>
+
+                    <div class="flex justify-between text-sm text-gray-500">
+                        <div>
+                            {% if module_data.progress.started_at %}
+                            <span>Начало: {{ module_data.progress.started_at[:10] }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if module_data.progress.finished_at %}
+                            <span>Завершение: {{ module_data.progress.finished_at[:10] }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="px-6 py-8 text-center">
+                <p class="text-gray-500">Нет данных о модулях</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">Нет данных о прогрессе</h3>
+        <p class="mt-2 text-gray-500">Запишитесь на курсы, чтобы отслеживать свой прогресс.</p>
+        <div class="mt-6">
+            <a href="{{ url_for('student_courses') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Найти курсы
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Анимация прогресс-баров
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-animate');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
+    });
+</script>
+{% endblock %}

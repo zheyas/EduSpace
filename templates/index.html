@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}EduSpace - Образовательная платформа{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <!-- Навигация -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <h1 class="text-2xl font-bold gradient-text">EduSpace</h1>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="#" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Главная
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Курсы
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            О платформе
+                        </a>
+                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Контакты
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <button onclick="openLoginModal()" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                        Вход
+                    </button>
+                    <a href="{{ url_for('register') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                        Регистрация
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Флеш-сообщения -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                {% for category, message in messages %}
+                    <div class="flash-message rounded-md p-4 mb-2 transition-all duration-300
+                        {% if category == 'success' %}bg-green-50 border border-green-200 text-green-800
+                        {% elif category == 'danger' %}bg-red-50 border border-red-200 text-red-800
+                        {% elif category == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800
+                        {% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                {% if category == 'success' %}
+                                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% elif category == 'danger' %}
+                                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% elif category == 'warning' %}
+                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% else %}
+                                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium">{{ message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Герой-секция -->
+    <main class="py-12 sm:py-16 lg:py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
+                <div class="fade-in">
+
+                    <p class="mt-6 text-xl text-gray-500">
+                        EduSpace объединяет студентов, преподавателей и администраторов в единой образовательной среде.
+                        Современный подход к обучению с интерактивными курсами, тестами и аналитикой прогресса.
+                    </p>
+                    <div class="mt-10 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+                        <button onclick="openLoginModal()" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10 btn-hover transition-all duration-200">
+                            Начать обучение
+                        </button>
+                        <a href="#" class="inline-flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 btn-hover transition-all duration-200">
+                            Подробнее
+                        </a>
+                    </div>
+                </div>
+                <div class="mt-12 lg:mt-0 slide-in">
+                    <div class="relative mx-auto w-full max-w-lg">
+                        <div class="relative rounded-2xl shadow-xl overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-20"></div>
+                            <div class="relative bg-white px-6 py-8">
+                                <div class="space-y-6">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                <svg class="h-6 w-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900">Интерактивное обучение</h3>
+                                            <p class="text-gray-500">Курсы с практическими заданиями и тестами</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <svg class="h-6 w-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900">Отслеживание прогресса</h3>
+                                            <p class="text-gray-500">Детальная аналитика и рекомендации</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-12 w-12 rounded-full bg-pink-100 flex items-center justify-center">
+                                                <svg class="h-6 w-6 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900">Гибкое расписание</h3>
+                                            <p class="text-gray-500">Учитесь в удобное время и в своем темпе</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Статистика -->
+    <section class="bg-white py-12 sm:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="text-center card-hover bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8">
+                    <div class="text-4xl font-bold text-indigo-600">100+</div>
+                    <div class="mt-2 text-lg font-medium text-gray-900">Активных курсов</div>
+                    <p class="mt-2 text-gray-500">Различных направлений и уровней</p>
+                </div>
+
+                <div class="text-center card-hover bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8">
+                    <div class="text-4xl font-bold text-purple-600">5,000+</div>
+                    <div class="mt-2 text-lg font-medium text-gray-900">Студентов</div>
+                    <p class="mt-2 text-gray-500">Учатся и развиваются с нами</p>
+                </div>
+
+                <div class="text-center card-hover bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-8">
+                    <div class="text-4xl font-bold text-green-600">150+</div>
+                    <div class="mt-2 text-lg font-medium text-gray-900">Преподавателей</div>
+                    <p class="mt-2 text-gray-500">Профессионалов своего дела</p>
+                </div>
+
+                <div class="text-center card-hover bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-8">
+                    <div class="text-4xl font-bold text-orange-600">95%</div>
+                    <div class="mt-2 text-lg font-medium text-gray-900">Успешных завершений</div>
+                    <p class="mt-2 text-gray-500">Высокий процент успеха студентов</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">EduSpace</h3>
+                    <p class="text-gray-400">Современная образовательная платформа для эффективного обучения и преподавания.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Навигация</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Главная</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Курсы</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">О нас</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Контакты</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Правовая информация</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Политика конфиденциальности</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Условия использования</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Cookie</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Контакты</h4>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Email: info@eduspace.com</li>
+                        <li class="text-gray-400">Телефон: +7 (999) 123-45-67</li>
+                        <li class="text-gray-400">Адрес: Москва, ул. Образовательная, 1</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                <p>&copy; 2024 EduSpace. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+    // Анимация счетчиков
+    document.addEventListener('DOMContentLoaded', () => {
+        const counters = document.querySelectorAll('.text-4xl');
+
+        counters.forEach(counter => {
+            const target = parseInt(counter.textContent);
+            const increment = target / 100;
+            let current = 0;
+
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.textContent = Math.floor(current) + '+';
+                    setTimeout(updateCounter, 20);
+                } else {
+                    counter.textContent = target + '+';
+                }
+            };
+
+            // Запускаем анимацию при скролле
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        updateCounter();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+
+            observer.observe(counter);
+        });
+    });
+</script>
+{% endblock %}

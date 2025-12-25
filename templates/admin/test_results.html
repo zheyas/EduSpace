@@ -1,0 +1,553 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Результаты тестов — EduSpace{% endblock %}
+{% block page_title %}Результаты тестов{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .section-title {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--text-primary);
+        font-size: 1.6rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .data-table th {
+        background: #f8fafc;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    .data-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        padding: 0.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border: 1px solid transparent;
+    }
+
+    .btn-view {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info-color);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-view:hover {
+        background: rgba(59, 130, 246, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Filters */
+    .filters-container {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .form-control {
+        padding: 0.625rem 0.75rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Progress bar */
+    .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .progress-bar {
+        flex: 1;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 4px;
+    }
+
+    .progress-text {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        min-width: 60px;
+        text-align: right;
+    }
+
+    /* Score badge */
+    .score-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .score-excellent {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .score-good {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .score-poor {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    /* Stats */
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-number {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        background: white;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        min-width: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pagination-btn:hover {
+        background: #f8fafc;
+        color: var(--primary-color);
+        border-color: rgba(79, 70, 229, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        font-weight: 600;
+        border-color: transparent;
+    }
+
+    .pagination-btn.disabled {
+        background: #f8fafc;
+        color: #cbd5e1;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .filters-form {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-summary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .data-table {
+            font-size: 0.875rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+        }
+
+        .progress-container {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .btn-icon {
+            width: 100%;
+            height: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="section-header">
+        <h2 class="section-title">Результаты тестов</h2>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="filters-container">
+        <form method="get" class="filters-form">
+            <div class="form-group">
+                <label class="form-label">Тест</label>
+                <select name="test_id" class="form-control">
+                    <option value="">Все тесты</option>
+                    {% for test in tests %}
+                        <option value="{{ test.id }}" {% if test.id|string == test_id %}selected{% endif %}>
+                            {{ test.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Пользователь</label>
+                <select name="user_id" class="form-control">
+                    <option value="">Все пользователи</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}" {% if user.id|string == user_id %}selected{% endif %}>
+                            {{ user.first_name }} {{ user.last_name }} ({{ user.email }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search mr-2"></i> Применить фильтры
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Сводная статистика -->
+    {% if results %}
+        <div class="stats-summary">
+            <div class="stat-item">
+                <div class="stat-number">{{ total_results }}</div>
+                <div class="stat-label">Всего результатов</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">
+                    {% if results|length > 0 %}
+                        {{ (results|map(attribute='result.score')|sum / results|length)|round(1) }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+                <div class="stat-label">Средний балл</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">
+                    {% if results|length > 0 %}
+                        {{ (results|selectattr('result.finished_at')|list|length / results|length * 100)|round(1) }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </div>
+                <div class="stat-label">Завершено</div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Таблица результатов -->
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Тест</th>
+                    <th>Пользователь</th>
+                    <th>Баллы</th>
+                    <th>Прогресс</th>
+                    <th>Дата начала</th>
+                    <th>Дата завершения</th>
+                    <th>Длительность</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in results %}
+                    {% set percentage = (item.result.score / item.result.max_score * 100) if item.result.max_score > 0 else 0 %}
+                    <tr>
+                        <td>
+                            <span class="font-mono text-sm">{{ item.result.id }}</span>
+                        </td>
+                        <td>
+                            <div class="font-medium">{{ item.test_title }}</div>
+                            <div class="text-sm text-gray-500">ID: {{ item.result.test_id }}</div>
+                        </td>
+                        <td>
+                            <div class="font-medium">{{ item.user_name }}</div>
+                            <div class="text-sm text-gray-500">{{ item.user_email }}</div>
+                        </td>
+                        <td>
+                            {% if percentage >= 80 %}
+                                {% set score_class = 'score-excellent' %}
+                            {% elif percentage >= 50 %}
+                                {% set score_class = 'score-good' %}
+                            {% else %}
+                                {% set score_class = 'score-poor' %}
+                            {% endif %}
+
+                            <span class="score-badge {{ score_class }}">
+    {{ "%g"|format(item.result.score) }} / {{ "%g"|format(item.result.max_score) }}
+</span>
+                        </td>
+                        <td>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ percentage|round(1) }}%"></div>
+                                </div>
+                                <div class="progress-text">{{ percentage|round(1) }}%</div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.result.started_at %}
+                                {{ item.result.started_at[:16] }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.result.finished_at %}
+                                {{ item.result.finished_at[:16] }}
+                            {% else %}
+                                <span class="text-gray-500">В процессе</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.result.duration_sec %}
+                                {% set minutes = item.result.duration_sec // 60 %}
+                                {% set seconds = item.result.duration_sec % 60 %}
+                                {{ minutes }}:{{ "%02d"|format(seconds) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('test_result', test_id=item.result.test_id, test_result_id=item.result.id) }}"
+                                   class="btn-icon btn-view"
+                                   title="Просмотреть результаты"
+                                   target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-8">
+                            <div class="empty-state">
+                                <i class="fas fa-poll fa-3x mb-4"></i>
+                                <h3 class="text-xl font-medium mb-2">Результаты не найдены</h3>
+                                <p class="text-gray-500 mb-4">Измените параметры фильтрации</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Пагинация -->
+    {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('admin_test_results', page=page-1, test_id=test_id, user_id=user_id) }}"
+                   class="pagination-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% else %}
+                <span class="pagination-btn disabled">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+                {% if p >= page - 2 and p <= page + 2 %}
+                    <a href="{{ url_for('admin_test_results', page=p, test_id=test_id, user_id=user_id) }}"
+                       class="pagination-btn {% if p == page %}active{% endif %}">
+                        {{ p }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page < total_pages %}
+                <a href="{{ url_for('admin_test_results', page=page+1, test_id=test_id, user_id=user_id) }}"
+                   class="pagination-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="pagination-btn disabled">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

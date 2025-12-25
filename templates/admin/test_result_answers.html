@@ -1,0 +1,560 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Ответы на тест — EduSpace{% endblock %}
+{% block page_title %}Ответы пользователя на тест{% endblock %}
+
+{% block extra_css %}
+<style>
+    .test-info-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .test-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-item h4 {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .info-item p {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .user-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .user-details h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .user-details p {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Вопросы */
+    .questions-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .question-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .question-number {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .question-type {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        background: #f8fafc;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+    }
+
+    .status-correct {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .status-incorrect {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .question-text {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    /* Ответы */
+    .answers-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .answer-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .answer-item.correct {
+        background: rgba(16, 185, 129, 0.05);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .answer-item.user-selected {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .answer-item.user-selected.incorrect {
+        background: rgba(239, 68, 68, 0.05);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .answer-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 4px;
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 0.125rem;
+    }
+
+    .answer-checkbox.correct {
+        background: var(--success-color);
+        border-color: var(--success-color);
+        color: white;
+    }
+
+    .answer-checkbox.user-selected {
+        background: var(--info-color);
+        border-color: var(--info-color);
+        color: white;
+    }
+
+    .answer-checkbox.user-selected.incorrect {
+        background: var(--danger-color);
+        border-color: var(--danger-color);
+        color: white;
+    }
+
+    .answer-text {
+        flex: 1;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .answer-label {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        background: #f8fafc;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .text-answer {
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-style: italic;
+        color: var(--text-primary);
+        line-height: 1.5;
+    }
+
+    /* Статистика */
+    .stats-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stat-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+
+    .stat-circle-content {
+        text-align: center;
+        z-index: 1;
+    }
+
+    .stat-circle-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-circle-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .stat-circle-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 8px solid #e2e8f0;
+    }
+
+    .stat-circle-fill {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 8px solid transparent;
+        border-top-color: var(--primary-color);
+        transform: rotate(45deg);
+    }
+
+    /* Навигация */
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .test-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .question-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .navigation-buttons {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .navigation-buttons .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .user-info {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .answer-item {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .answer-label {
+            position: static;
+            align-self: flex-end;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Информация о тесте и пользователе -->
+    <div class="test-info-card">
+        <div class="test-info-grid">
+            <div class="info-item">
+                <h4>Тест</h4>
+                <p>{{ test.title }}</p>
+            </div>
+
+            <div class="info-item">
+                <h4>Дата прохождения</h4>
+                <p>
+                    {% if test_result.finished_at %}
+                        {{ test_result.finished_at.strftime('%d.%m.%Y %H:%M') if test_result.finished_at is not string else test_result.finished_at[:16] }}
+                    {% else %}
+                        В процессе
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="info-item">
+                <h4>Результат</h4>
+                <p>{{ test_result.score }} / {{ test_result.max_score }} баллов</p>
+            </div>
+
+            <div class="info-item">
+                <h4>Процент выполнения</h4>
+                <p>
+                    {% set percentage = (test_result.score / test_result.max_score * 100) if test_result.max_score > 0 else 0 %}
+                    {{ "%.1f"|format(percentage) }}%
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация о пользователе -->
+    <div class="user-info">
+        <div class="user-icon">
+            <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+            <p>{{ user.email }} • ID: {{ user.id }}</p>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-card">
+        <h3 class="font-medium text-lg mb-4">Статистика ответов</h3>
+        <div class="stats-grid">
+            {% set total_questions = questions_with_answers|length %}
+            {% set correct_answers = questions_with_answers|selectattr('is_correct')|list|length %}
+            {% set percentage = (correct_answers / total_questions * 100) if total_questions > 0 else 0 %}
+
+            <div>
+                <div class="stat-circle">
+                    <div class="stat-circle-bg"></div>
+                    <div class="stat-circle-fill" style="transform: rotate({{ (percentage * 3.6) - 135 }}deg);"></div>
+                    <div class="stat-circle-content">
+                        <div class="stat-circle-value">{{ "%.0f"|format(percentage) }}%</div>
+                        <div class="stat-circle-label">правильно</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col justify-center">
+                <div class="text-center mb-2">
+                    <div class="text-2xl font-bold text-gray-800">{{ correct_answers }} / {{ total_questions }}</div>
+                    <div class="text-sm text-gray-600">правильных ответов</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-semibold {% if percentage >= 70 %}text-green-600{% elif percentage >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                        {% if percentage >= 90 %}
+                            Отлично
+                        {% elif percentage >= 70 %}
+                            Хорошо
+                        {% elif percentage >= 50 %}
+                            Удовлетворительно
+                        {% else %}
+                            Неудовлетворительно
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вопросы и ответы -->
+    <div class="questions-container">
+        {% for item in questions_with_answers %}
+            <div class="question-card">
+                <div class="question-header">
+                    <div class="question-number">
+                        <span>Вопрос {{ loop.index }}</span>
+                        <span class="question-type">
+                            {% if item.question.type == 'single' %}
+                                Один ответ
+                            {% elif item.question.type == 'multiple' %}
+                                Несколько ответов
+                            {% else %}
+                                Текст
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="status-badge {% if item.is_correct %}status-correct{% else %}status-incorrect{% endif %}">
+                        {% if item.is_correct %}
+                            <i class="fas fa-check-circle mr-1"></i> Правильно
+                        {% else %}
+                            <i class="fas fa-times-circle mr-1"></i> Неправильно
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="question-text">
+                    {{ item.question.text }}
+                </div>
+
+                {% if item.question.type in ['single', 'multiple'] %}
+                    <div class="answers-container">
+                        {% for answer in item.all_answers %}
+                            {% set is_correct = answer.id in (item.correct_answers|map(attribute='id')|list) %}
+                            {% set is_user_selected = item.user_answer and (item.user_answer.answer_id == answer.id or answer.id in (item.user_answer.answer_data.answer_ids if item.user_answer.answer_data else [])) %}
+
+                            <div class="answer-item {% if is_correct %}correct{% endif %} {% if is_user_selected %}user-selected{% if not is_correct %} incorrect{% endif %}{% endif %}">
+                                <div class="answer-checkbox {% if is_correct %}correct{% endif %} {% if is_user_selected %}user-selected{% if not is_correct %} incorrect{% endif %}{% endif %}">
+                                    {% if is_correct %}
+                                        <i class="fas fa-check" style="font-size: 0.75rem;"></i>
+                                    {% elif is_user_selected %}
+                                        <i class="fas fa-times" style="font-size: 0.75rem;"></i>
+                                    {% endif %}
+                                </div>
+
+                                <div class="answer-text">
+                                    {{ answer.text }}
+                                </div>
+
+                                {% if is_correct %}
+                                    <div class="answer-label">Правильный ответ</div>
+                                {% elif is_user_selected %}
+                                    <div class="answer-label">Выбранный ответ</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        {% if item.user_answer and not item.user_answer.answer_id and not item.user_answer.answer_data.answer_ids %}
+                            <div class="text-sm text-gray-500 italic mt-2">
+                                <i class="fas fa-info-circle mr-1"></i> Пользователь не выбрал ответ
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <!-- Текстовый ответ -->
+                    <div class="mb-3">
+                        <h4 class="font-medium text-gray-700 mb-2">Правильный ответ:</h4>
+                        <div class="text-answer">
+                            {% if item.correct_answers %}
+                                {{ item.correct_answers[0].text if item.correct_answers else 'Нет правильного ответа' }}
+                            {% else %}
+                                Оценивается преподавателем
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-medium text-gray-700 mb-2">Ответ пользователя:</h4>
+                        <div class="text-answer {% if item.user_answer and item.user_answer.text_answer %}bg-blue-50 border-blue-200{% endif %}">
+                            {% if item.user_answer and item.user_answer.text_answer %}
+                                {{ item.user_answer.text_answer }}
+                            {% else %}
+                                <span class="text-gray-400">Пользователь не предоставил ответ</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Навигация -->
+    <div class="navigation-buttons">
+        <a href="{{ url_for('admin_test_results') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i> Назад к результатам
+        </a>
+
+        <a href="{{ url_for('admin_test_attempts', test_id=test.id, user_id=user.id) }}" class="btn btn-primary">
+            <i class="fas fa-redo mr-2"></i> Все попытки пользователя
+        </a>
+    </div>
+{% endblock %}

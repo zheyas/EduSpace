@@ -1,0 +1,407 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if material %}Редактирование материала{% else %}Создание материала{% endif %} — EduSpace{% endblock %}
+{% block page_title %}{% if material %}Редактирование материала{% else %}Создание материала{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        background: rgba(26, 26, 26, 0.5);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23FF79FE' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 121, 254, 0.2);
+    }
+
+    .required::after {
+        content: " *";
+        color: #e74c3c;
+    }
+
+    .material-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: rgba(255, 121, 254, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 121, 254, 0.3);
+    }
+
+    .material-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 121, 254, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .material-details h3 {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        margin-bottom: 0.3rem;
+    }
+
+    .material-details p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+
+    .module-selection {
+        background: rgba(255, 121, 254, 0.05);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .module-selection h4 {
+        color: var(--secondary-color);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .content-type-fields {
+        background: rgba(26, 26, 26, 0.3);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .type-fields {
+        display: none;
+    }
+
+    .type-fields.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        {% if material %}
+            <div class="material-info">
+                <div class="material-icon">
+                    {% if material.material_type == 'video' %}
+                        <i class="fas fa-video"></i>
+                    {% elif material.material_type == 'article' %}
+                        <i class="fas fa-newspaper"></i>
+                    {% elif material.material_type == 'presentation' %}
+                        <i class="fas fa-images"></i>
+                    {% elif material.material_type == 'document' %}
+                        <i class="fas fa-file-pdf"></i>
+                    {% else %}
+                        <i class="fas fa-question-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="material-details">
+                    <h3>{{ material.title }}</h3>
+                    <p>ID: {{ material.id }} • Модуль: {{ material.module_title or 'Не указан' }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="form-card">
+            <h2 class="form-title">
+                {% if material %}
+                    Редактирование материала
+                {% else %}
+                    Создание нового материала
+                {% endif %}
+            </h2>
+
+            {% if not material and module_id %}
+                <div class="module-selection">
+                    <h4>Модуль: {{ selected_module.title if selected_module else 'ID: ' + module_id|string }}</h4>
+                    <p>Курс: {{ selected_module.course_title if selected_module else 'Не указан' }}</p>
+                </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% if not material and not module_id %}
+                    <div class="form-group">
+                        <label class="form-label required">Модуль</label>
+                        <select name="module_id" class="form-control form-select" required>
+                            <option value="">Выберите модуль</option>
+                            {% for module in modules %}
+                                <option value="{{ module.id }}" {% if module_id == module.id %}selected{% endif %}>
+                                    {{ module.title }} ({{ module.course_title }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% else %}
+                    <input type="hidden" name="module_id" value="{{ material.module_id if material else module_id }}">
+                {% endif %}
+
+                <div class="form-group">
+                    <label class="form-label required">Название материала</label>
+                    <input type="text"
+                           name="title"
+                           class="form-control"
+                           value="{{ material.title if material else '' }}"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description"
+                              class="form-control form-textarea"
+                              placeholder="Описание материала...">{{ material.description if material else '' }}</textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">Тип материала</label>
+                        <select name="material_type"
+                                class="form-control form-select"
+                                required
+                                onchange="showContentFields(this.value)">
+                            <option value="">Выберите тип</option>
+                            <option value="video" {% if material and material.material_type == 'video' %}selected{% endif %}>Видео</option>
+                            <option value="article" {% if material and material.material_type == 'article' %}selected{% endif %}>Статья</option>
+                            <option value="presentation" {% if material and material.material_type == 'presentation' %}selected{% endif %}>Презентация</option>
+                            <option value="document" {% if material and material.material_type == 'document' %}selected{% endif %}>Документ</option>
+                            <option value="quiz" {% if material and material.material_type == 'quiz' %}selected{% endif %}>Квиз</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Длительность (минут)</label>
+                        <input type="number"
+                               name="duration_minutes"
+                               class="form-control"
+                               value="{{ material.duration_minutes if material else 15 }}"
+                               min="1" max="300">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Порядок</label>
+                    <input type="number"
+                           name="order"
+                           class="form-control"
+                           value="{{ material.order if material else 1 }}"
+                           min="1">
+                    <p class="form-text">Порядок отображения материалов в модуле</p>
+                </div>
+
+                <!-- Поля для разных типов материалов -->
+                <div class="content-type-fields">
+                    <!-- Видео -->
+                    <div id="video-fields" class="type-fields {% if material and material.material_type == 'video' %}active{% endif %}">
+                        <div class="form-group">
+                            <label class="form-label">URL видео</label>
+                            <input type="url"
+                                   name="video_url"
+                                   class="form-control"
+                                   placeholder="https://youtube.com/watch?v=..."
+                                   value="{{ material.content.url if material and material.content and material.content.url else '' }}">
+                            <p class="form-text">Ссылка на YouTube, Vimeo или другое видеохранилище</p>
+                        </div>
+                    </div>
+
+                    <!-- Статья -->
+                    <div id="article-fields" class="type-fields {% if material and material.material_type == 'article' %}active{% endif %}">
+                        <div class="form-group">
+                            <label class="form-label">Текст статьи</label>
+                            <textarea name="article_content"
+                                      class="form-control form-textarea"
+                                      placeholder="Текст статьи...">{{ material.content.text if material and material.content and material.content.text else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Презентация -->
+                    <div id="presentation-fields" class="type-fields {% if material and material.material_type == 'presentation' %}active{% endif %}">
+                        <div class="form-group">
+                            <label class="form-label">Презентация</label>
+                            <input type="file"
+                                   name="presentation_file"
+                                   class="form-control"
+                                   accept=".ppt,.pptx,.pdf">
+                            <p class="form-text">Загрузите презентацию (PPT, PPTX, PDF)</p>
+                            {% if material and material.content and material.content.file_url %}
+                                <p class="form-text">
+                                    Текущий файл: <a href="{{ material.content.file_url }}" target="_blank">Просмотреть</a>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Документ -->
+                    <div id="document-fields" class="type-fields {% if material and material.material_type == 'document' %}active{% endif %}">
+                        <div class="form-group">
+                            <label class="form-label">Документ</label>
+                            <input type="file"
+                                   name="document_file"
+                                   class="form-control"
+                                   accept=".pdf,.doc,.docx,.txt">
+                            <p class="form-text">Загрузите документ (PDF, DOC, DOCX, TXT)</p>
+                            {% if material and material.content and material.content.file_url %}
+                                <p class="form-text">
+                                    Текущий файл: <a href="{{ material.content.file_url }}" target="_blank">Просмотреть</a>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Квиз -->
+                    <div id="quiz-fields" class="type-fields {% if material and material.material_type == 'quiz' %}active{% endif %}">
+                        <div class="form-group">
+                            <label class="form-label">Вопросы квиза</label>
+                            <textarea name="quiz_questions"
+                                      class="form-control form-textarea"
+                                      placeholder="Вопрос 1...
+Вариант A
+Вариант B
+Вариант C
+Правильный: A
+
+Вопрос 2...
+Вариант A
+Вариант B
+Правильный: B">{{ material.content.questions if material and material.content and material.content.questions else '' }}</textarea>
+                            <p class="form-text">Каждый вопрос с новой строки, варианты ответов на отдельных строках, правильный ответ указывается в формате: "Правильный: X"</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox"
+                               name="is_published"
+                               {% if not material or material.is_published %}checked{% endif %}
+                               value="true">
+                        <span>Опубликовать материал</span>
+                    </label>
+                    <p class="form-text">Опубликованные материалы доступны студентам</p>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('admin_materials', module_id=material.module_id if material else module_id) }}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-times mr-2"></i> Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i> Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showContentFields(type) {
+        // Скрываем все поля
+        document.querySelectorAll('.type-fields').forEach(fields => {
+            fields.classList.remove('active');
+        });
+
+        // Показываем поля для выбранного типа
+        if (type) {
+            const fieldsId = type + '-fields';
+            const fields = document.getElementById(fieldsId);
+            if (fields) {
+                fields.classList.add('active');
+            }
+        }
+    }
+
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        const materialType = '{{ material.material_type if material else "" }}';
+        if (materialType) {
+            showContentFields(materialType);
+        }
+    });
+
+    // Ограничение размера файла
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file && file.size > 50 * 1024 * 1024) { // 50MB
+                alert('Файл слишком большой. Максимальный размер: 50MB');
+                this.value = '';
+            }
+        });
+    });
+</script>
+{% endblock %}

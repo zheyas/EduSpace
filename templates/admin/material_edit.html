@@ -1,0 +1,84 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Редактирование материала — EduSpace{% endblock %}
+{% block page_title %}Редактирование материала{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="course-info-card">
+            <div class="course-title">{{ module.title }}</div>
+            <div class="course-meta">
+                <div class="meta-item">
+                    <i class="fas fa-hashtag"></i>
+                    <span>ID материала: {{ material.id }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-tag"></i>
+                    <span>Тип: {{ material.content_type }}</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-sort-numeric-down"></i>
+                    <span>Порядок: {{ material.material_order }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div class="form-card">
+                <h2 class="form-title">Редактирование материала</h2>
+
+                <form method="post">
+                    <div class="form-group">
+                        <label class="form-label required">Название материала</label>
+                        <input type="text"
+                               name="title"
+                               class="form-control"
+                               value="{{ material.title }}"
+                               required>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label required">Тип контента</label>
+                            <select name="content_type" class="form-control form-select" required>
+                                {% for type in content_types %}
+                                    <option value="{{ type }}"
+                                            {% if material.content_type == type %}selected{% endif %}>
+                                        {{ type|title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Порядковый номер</label>
+                            <input type="number"
+                                   name="material_order"
+                                   class="form-control"
+                                   min="1"
+                                   value="{{ material.material_order }}"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Содержимое материала</label>
+                        <textarea name="content"
+                                  class="form-control form-textarea"
+                                  rows="10">{{ material.content or '' }}</textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{{ url_for('admin_module_detail', module_id=module.id) }}"
+                           class="btn btn-secondary">
+                            <i class="fas fa-times mr-2"></i> Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i> Сохранить изменения
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,1638 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Аналитика — EduSpace{% endblock %}
+{% block page_title %}Аналитика{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Общие стили для всех блоков аналитики */
+    .analytics-block {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .analytics-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(79, 70, 229, 0.3);
+    }
+
+    .analytics-title {
+        font-family: 'Inter', sans-serif;
+        color: var(--primary-color);
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .analytics-description {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Форма выбора данных */
+    .analytics-form {
+        background: rgba(79, 70, 229, 0.05);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        padding: 0.75rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Таблицы с результатами */
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .results-table th {
+        background: #f8fafc;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+    }
+
+    .results-table td {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .results-table tr:hover {
+        background: #f8fafc;
+    }
+
+    /* Стили для рангов и оценок */
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .rank-1 {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: white;
+    }
+
+    .rank-2 {
+        background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+        color: white;
+    }
+
+    .rank-3 {
+        background: linear-gradient(135deg, #CD7F32, #A0522D);
+        color: white;
+    }
+
+    .rank-other {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .score-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .score-excellent {
+        background: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .score-good {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .score-average {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .score-poor {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    /* Графики */
+    .chart-container {
+        height: 300px;
+        margin-top: 1rem;
+        position: relative;
+    }
+
+    .chart-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-secondary);
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px dashed var(--border-color);
+    }
+
+    .chart-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Пустой состояние */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.3;
+    }
+
+    /* Карточки статистики */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1.25rem;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-family: 'Inter', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    /* Прогресс бар */
+    .progress-bar {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4f46e5, #7c3aed);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    /* Превью результатов */
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .preview-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .preview-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+    }
+
+    .student-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .student-email {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+
+    .student-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-item-value {
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .stat-item-label {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Информационные сообщения */
+    .info-alert {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        color: #1d4ed8;
+    }
+
+    .info-alert i {
+        margin-right: 0.5rem;
+    }
+
+    /* Анимации */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Кнопки */
+    .btn-refresh {
+        background: rgba(79, 70, 229, 0.1);
+        color: var(--primary-color);
+        border: 1px solid rgba(79, 70, 229, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-refresh:hover {
+        background: rgba(79, 70, 229, 0.2);
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+    }
+
+    /* Заголовки секций */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .timestamp {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    /* Ошибка валидации */
+    .error-alert {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        color: #dc2626;
+    }
+
+    .error-alert i {
+        margin-right: 0.5rem;
+    }
+
+    /* Иконки состояния */
+    .status-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+
+    .status-completed {
+        background: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
+    }
+
+    .status-active {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+    }
+
+    .status-dropped {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .analytics-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .timestamp {
+            align-self: flex-end;
+        }
+
+        .preview-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+<link href="https://cdn.jsdelivr.net/npm/chart.js" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <!-- Форма выбора параметров аналитики -->
+    <div class="analytics-form fade-in">
+        <h3 style="margin-bottom: 1.5rem; color: var(--text-primary);">Параметры аналитики</h3>
+
+        <form method="get" id="analyticsForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="analytic_type">Тип аналитики</label>
+                    <select class="form-select" id="analytic_type" name="analytic_type" onchange="updateFormFields()">
+                        <option value="">Выберите тип аналитики</option>
+                        <option value="top_students" {% if analytic_type == 'top_students' %}selected{% endif %}>
+                            1. Топ лучших студентов
+                        </option>
+                        <option value="test_completion" {% if analytic_type == 'test_completion' %}selected{% endif %}>
+                            2. Результаты теста/курса
+                        </option>
+                        <option value="learning_dynamics" {% if analytic_type == 'learning_dynamics' %}selected{% endif %}>
+                            3. Динамика обучения
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Поля для ТОП студентов -->
+            {% if analytic_type == 'top_students' %}
+            <div id="top_students_fields" class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="course_id">Курс</label>
+                    <select class="form-select" id="course_id" name="course_id" required>
+                        <option value="">Выберите курс</option>
+                        {% for course in courses %}
+                        <option value="{{ course.id }}" {% if course.id == selected_course_id %}selected{% endif %}>
+                            {{ course.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="start_date">Дата с</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date"
+                           value="{{ start_date if start_date else '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="end_date">Дата по</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date"
+                           value="{{ end_date if end_date else '' }}">
+                    <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">
+                        * Дата "по" должна быть позже даты "с"
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="top_limit">Количество студентов</label>
+                    <select class="form-select" id="top_limit" name="top_limit">
+                        <option value="5" {% if top_limit == '5' %}selected{% endif %}>Топ 5</option>
+                        <option value="10" {% if top_limit == '10' %}selected{% endif %}>Топ 10</option>
+                        <option value="20" {% if top_limit == '20' %}selected{% endif %}>Топ 20</option>
+                        <option value="50" {% if top_limit == '50' %}selected{% endif %}>Топ 50</option>
+                    </select>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Поля для результатов теста/курса -->
+            {% if analytic_type == 'test_completion' %}
+            <div id="test_completion_fields" class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="target_id">Тест или курс</label>
+                    <select class="form-select" id="target_id" name="target_id" required>
+                        <option value="">Выберите тест или курс</option>
+                        <optgroup label="Тесты">
+                            {% for test in tests %}
+                            <option value="test_{{ test.id }}" {% if target_id == 'test_' + test.id|string %}selected{% endif %}>
+                                Тест: {{ test.title }}
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                        <optgroup label="Курсы">
+                            {% for course in courses %}
+                            <option value="course_{{ course.id }}" {% if target_id == 'course_' + course.id|string %}selected{% endif %}>
+                                Курс: {{ course.title }}
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="completion_start_date">Период с</label>
+                    <input type="date" class="form-control" id="completion_start_date" name="completion_start_date"
+                           value="{{ completion_start_date if completion_start_date else '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="completion_end_date">Период по</label>
+                    <input type="date" class="form-control" id="completion_end_date" name="completion_end_date"
+                           value="{{ completion_end_date if completion_end_date else '' }}">
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Поля для динамики обучения -->
+            {% if analytic_type == 'learning_dynamics' %}
+            <div id="learning_dynamics_fields" class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="student_id">Студент</label>
+                    <select class="form-select" id="student_id" name="student_id" required>
+                        <option value="">Выберите студента</option>
+                        {% for student in students %}
+                        <option value="{{ student.id }}" {% if student.id == selected_student_id %}selected{% endif %}>
+                            {{ student.first_name }} {{ student.last_name }} ({{ student.email }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="dynamics_start_date">Период с</label>
+                    <input type="date" class="form-control" id="dynamics_start_date" name="dynamics_start_date"
+                           value="{{ dynamics_start_date if dynamics_start_date else '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="dynamics_end_date">Период по</label>
+                    <input type="date" class="form-control" id="dynamics_end_date" name="dynamics_end_date"
+                           value="{{ dynamics_end_date if dynamics_end_date else '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="analysis_type">Тип анализа</label>
+                    <select class="form-select" id="analysis_type" name="analysis_type">
+                        <option value="tests" {% if analysis_type == 'tests' %}selected{% endif %}>Только тесты</option>
+                        <option value="courses" {% if analysis_type == 'courses' %}selected{% endif %}>Только курсы</option>
+                        <option value="all" {% if analysis_type == 'all' %}selected{% endif %}>Все активности</option>
+                    </select>
+                </div>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-chart-line mr-2"></i> Показать аналитику
+                </button>
+                <button type="button" class="btn-refresh" onclick="clearFilters()">
+                    <i class="fas fa-redo mr-2"></i> Сбросить фильтры
+                </button>
+
+                {% if not analytic_type %}
+                <a href="/admin/create_test_analytics_data" class="btn btn-secondary">
+                    <i class="fas fa-vial mr-2"></i> Создать тестовые данные
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Результаты аналитики -->
+    {% if analytic_type %}
+        <div class="fade-in">
+            {% if analytic_type == 'top_students' %}
+                <!-- Блок 1: Топ лучших студентов -->
+                <div class="analytics-block">
+                    <div class="analytics-header">
+                        <div>
+                            <h3 class="analytics-title">
+                                <i class="fas fa-trophy mr-2"></i>
+                                Топ {{ top_limit if top_limit else '10' }} лучших студентов
+                            </h3>
+                            {% if selected_course %}
+                                <div class="analytics-description">
+                                    Курс: {{ selected_course.title }} |
+                                    Период: {{ start_date if start_date else 'Начало' }} - {{ end_date if end_date else 'Сейчас' }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="timestamp">
+                            Обновлено: {{ now|format_datetime }}
+                        </div>
+                    </div>
+
+                    {% if validation_error %}
+                        <div class="error-alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {{ validation_error }}
+                        </div>
+                    {% endif %}
+
+                    {% if top_students and top_students|length > 0 %}
+                        <!-- Краткая статистика -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">{{ top_students|length }}</div>
+                                <div class="stat-label">Студентов в топе</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">
+                                    {% set total_score = 0 %}
+                                    {% for student in top_students %}
+                                        {% if student.final_score %}
+                                            {% set total_score = total_score + student.final_score %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ "%.2f"|format(total_score / top_students|length) if top_students|length > 0 else 0 }}
+                                </div>
+                                <div class="stat-label">Средний балл</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">
+                                    {% set total_progress = 0 %}
+                                    {% for student in top_students %}
+                                        {% if student.progress_percent %}
+                                            {% set total_progress = total_progress + student.progress_percent %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ "%.1f"|format(total_progress / top_students|length) if top_students|length > 0 else 0 }}%
+                                </div>
+                                <div class="stat-label">Средний прогресс</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">
+                                    {% set total_test_score = 0 %}
+                                    {% for student in top_students %}
+                                        {% if student.average_test_score %}
+                                            {% set total_test_score = total_test_score + student.average_test_score %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ "%.1f"|format(total_test_score / top_students|length) if top_students|length > 0 else 0 }}%
+                                </div>
+                                <div class="stat-label">Средний балл тестов</div>
+                            </div>
+                        </div>
+
+                        <!-- Превью топ-3 -->
+                        {% if top_students|length >= 3 %}
+                            <div class="section-header" style="margin-top: 2rem;">
+                                <h4 class="section-title">Топ-3 студентов</h4>
+                            </div>
+                            <div class="preview-grid">
+                                {% for student in top_students[:3] %}
+                                    <div class="preview-card">
+                                        <div class="rank-badge rank-{{ loop.index }}">
+                                            {{ loop.index }}
+                                        </div>
+                                        <div class="student-name">
+                                            {{ student.student_name }}
+                                        </div>
+                                        <div class="student-email">
+                                            {{ student.email }}
+                                        </div>
+                                        <div class="student-stats">
+                                            <div class="stat-item">
+                                                <div class="stat-item-value">
+                                                    {% if student.final_score %}
+                                                        {{ "%.2f"|format(student.final_score) }}
+                                                    {% else %}
+                                                        —
+                                                    {% endif %}
+                                                </div>
+                                                <div class="stat-item-label">Финальный балл</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-item-value">{{ "%.1f"|format(student.progress_percent) }}%</div>
+                                                <div class="stat-item-label">Прогресс</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-item-value">{{ "%.1f"|format(student.average_test_score) }}%</div>
+                                                <div class="stat-item-label">Тесты</div>
+                                            </div>
+                                        </div>
+                                        {% if student.finished_at %}
+                                            <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                                                Завершил: {{ student.finished_at|format_datetime }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Полная таблица -->
+                        <div class="section-header" style="margin-top: 2rem;">
+                            <h4 class="section-title">Полный рейтинг</h4>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Ранг</th>
+                                        <th>Студент</th>
+                                        <th>Email</th>
+                                        <th>Финальный балл</th>
+                                        <th>Прогресс</th>
+                                        <th>Средний балл тестов</th>
+                                        <th>Завершен</th>
+                                        <th>Кол-во тестов</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in top_students %}
+                                        <tr>
+                                            <td>
+                                                <div class="rank-badge
+                                                    {% if loop.index == 1 %}rank-1
+                                                    {% elif loop.index == 2 %}rank-2
+                                                    {% elif loop.index == 3 %}rank-3
+                                                    {% else %}rank-other{% endif %}">
+                                                    {{ loop.index }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>{{ student.student_name }}</strong>
+                                            </td>
+                                            <td>{{ student.email }}</td>
+                                            <td>
+                                                {% if student.final_score %}
+                                                    <span class="score-badge
+                                                        {% if student.final_score >= 90 %}score-excellent
+                                                        {% elif student.final_score >= 75 %}score-good
+                                                        {% elif student.final_score >= 60 %}score-average
+                                                        {% else %}score-poor{% endif %}">
+                                                        {{ "%.2f"|format(student.final_score) }}
+                                                    </span>
+                                                {% else %}
+                                                    <span style="color: var(--text-secondary);">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div>{{ "%.1f"|format(student.progress_percent) }}%</div>
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill" style="width: {{ student.progress_percent }}%;"></div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="score-badge
+                                                    {% if student.average_test_score >= 90 %}score-excellent
+                                                    {% elif student.average_test_score >= 75 %}score-good
+                                                    {% elif student.average_test_score >= 60 %}score-average
+                                                    {% else %}score-poor{% endif %}">
+                                                    {{ "%.1f"|format(student.average_test_score) }}%
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if student.finished_at %}
+                                                    {{ student.finished_at|format_date }}
+                                                {% else %}
+                                                    <span style="color: var(--text-secondary);">В процессе</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ student.test_results|length if student.test_results else 0 }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h3>Нет данных для отображения</h3>
+                            <p>По выбранным критериям не найдено студентов. Попробуйте изменить параметры фильтрации.</p>
+                            {% if not selected_course_id %}
+                                <p style="color: #dc2626; margin-top: 0.5rem;">
+                                    <i class="fas fa-exclamation-circle"></i> Необходимо выбрать курс
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+            {% elif analytic_type == 'test_completion' %}
+                <!-- Блок 2: Результаты теста/курса -->
+                <div class="analytics-block">
+                    <div class="analytics-header">
+                        <div>
+                            <h3 class="analytics-title">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Результаты прохождения
+                            </h3>
+                            <div class="analytics-description">
+                                {% if target_type == 'test' %}
+                                    Тест: {{ target_title }}
+                                {% elif target_type == 'course' %}
+                                    Курс: {{ target_title }}
+                                {% endif %}
+                                | Период: {{ completion_start_date if completion_start_date else 'Начало' }} - {{ completion_end_date if completion_end_date else 'Сейчас' }}
+                            </div>
+                        </div>
+                        <div class="timestamp">
+                            Обновлено: {{ now|format_datetime }}
+                        </div>
+                    </div>
+
+                    {% if validation_error %}
+                        <div class="error-alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {{ validation_error }}
+                        </div>
+                    {% endif %}
+
+                    {% if completion_data %}
+                        <!-- Общая статистика -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">{{ completion_data.total_attempts if completion_data.total_attempts else completion_data.unique_students }}</div>
+                                <div class="stat-label">
+                                    {% if target_type == 'test' %}
+                                        Попыток
+                                    {% else %}
+                                        Студентов
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">
+                                    {% if target_type == 'test' %}
+                                        {{ "%.1f"|format(completion_data.average_score) if completion_data.average_score else 0 }}
+                                    {% else %}
+                                        {{ "%.1f"|format(completion_data.average_final_score) if completion_data.average_final_score else 0 }}
+                                    {% endif %}
+                                </div>
+                                <div class="stat-label">Средний балл</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">
+                                    {% if target_type == 'test' %}
+                                        {{ "%.1f"|format(completion_data.pass_rate) if completion_data.pass_rate else 0 }}%
+                                    {% else %}
+                                        {{ "%.1f"|format(completion_data.completion_rate) if completion_data.completion_rate else 0 }}%
+                                    {% endif %}
+                                </div>
+                                <div class="stat-label">
+                                    {% if target_type == 'test' %}
+                                        Процент сдачи
+                                    {% else %}
+                                        Процент завершения
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">
+                                    {% if target_type == 'test' %}
+                                        {{ completion_data.unique_students if completion_data.unique_students else 0 }}
+                                    {% else %}
+                                        {{ completion_data.active_students if completion_data.active_students else 0 }}
+                                    {% endif %}
+                                </div>
+                                <div class="stat-label">
+                                    {% if target_type == 'test' %}
+                                        Уникальных студентов
+                                    {% else %}
+                                        Активных студентов
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- График распределения результатов (только для тестов) -->
+                        {% if target_type == 'test' and completion_data.score_distribution %}
+                            <div class="section-header" style="margin-top: 2rem;">
+                                <h4 class="section-title">Распределение результатов</h4>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="resultsDistributionChart"></canvas>
+                            </div>
+                        {% endif %}
+
+                        <!-- Детальная таблица -->
+                        <div class="section-header" style="margin-top: 2rem;">
+                            <h4 class="section-title">Детальные результаты</h4>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        {% if target_type == 'test' %}
+                                            <th>Студент</th>
+                                            <th>Лучший результат</th>
+                                            <th>Попыток</th>
+                                            <th>Последняя попытка</th>
+                                            <th>Среднее время</th>
+                                            <th>Статус</th>
+                                        {% else %}
+                                            <th>Студент</th>
+                                            <th>Прогресс</th>
+                                            <th>Финальный балл</th>
+                                            <th>Статус</th>
+                                            <th>Дата записи</th>
+                                            <th>Дата завершения</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if target_type == 'test' and completion_data.detailed_results %}
+                                        {% for result in completion_data.detailed_results %}
+                                            <tr>
+                                                <td>{{ result.student_name }}</td>
+                                                <td>
+                                                    <span class="score-badge
+                                                        {% if result.best_percentage >= 90 %}score-excellent
+                                                        {% elif result.best_percentage >= 75 %}score-good
+                                                        {% elif result.best_percentage >= 60 %}score-average
+                                                        {% else %}score-poor{% endif %}">
+                                                        {{ "%.1f"|format(result.best_percentage) }}%
+                                                    </span>
+                                                </td>
+                                                <td>{{ result.attempts_count }}</td>
+                                                <td>{{ result.last_attempt|format_datetime if result.last_attempt else '—' }}</td>
+                                                <td>
+                                                    {% if result.avg_duration %}
+                                                        {{ "%.1f"|format(result.avg_duration / 60) }} мин.
+                                                    {% else %}
+                                                        —
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if result.best_percentage >= 60 %}
+                                                        <span style="color: #16a34a; font-weight: 500;">
+                                                            <i class="fas fa-check-circle"></i> Сдал
+                                                        </span>
+                                                    {% else %}
+                                                        <span style="color: #dc2626; font-weight: 500;">
+                                                            <i class="fas fa-times-circle"></i> Не сдал
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% elif target_type == 'course' and completion_data.detailed_results %}
+                                        {% for result in completion_data.detailed_results %}
+                                            <tr>
+                                                <td>{{ result.student_name }}</td>
+                                                <td>
+                                                    <div>{{ "%.1f"|format(result.progress_percent) }}%</div>
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" style="width: {{ result.progress_percent }}%;"></div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% if result.final_score %}
+                                                        <span class="score-badge
+                                                            {% if result.final_score >= 90 %}score-excellent
+                                                            {% elif result.final_score >= 75 %}score-good
+                                                            {% elif result.final_score >= 60 %}score-average
+                                                            {% else %}score-poor{% endif %}">
+                                                            {{ "%.1f"|format(result.final_score) }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span style="color: var(--text-secondary);">—</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if result.status == 'completed' %}
+                                                        <span class="status-icon status-completed">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </span>
+                                                        Завершен
+                                                    {% elif result.status == 'active' %}
+                                                        <span class="status-icon status-active">
+                                                            <i class="fas fa-spinner"></i>
+                                                        </span>
+                                                        В процессе
+                                                    {% else %}
+                                                        <span class="status-icon status-dropped">
+                                                            <i class="fas fa-times-circle"></i>
+                                                        </span>
+                                                        Прерван
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ result.enrolled_at|format_date if result.enrolled_at else '—' }}</td>
+                                                <td>{{ result.finished_at|format_date if result.finished_at else '—' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4">
+                                                Нет детальных данных для отображения
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>Нет данных для отображения</h3>
+                            <p>По выбранным критериям не найдено результатов. Попробуйте изменить параметры фильтрации.</p>
+                            {% if not target_id %}
+                                <p style="color: #dc2626; margin-top: 0.5rem;">
+                                    <i class="fas fa-exclamation-circle"></i> Необходимо выбрать тест или курс
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+            {% elif analytic_type == 'learning_dynamics' %}
+                <!-- Блок 3: Динамика обучения -->
+                <div class="analytics-block">
+                    <div class="analytics-header">
+                        <div>
+                            <h3 class="analytics-title">
+                                <i class="fas fa-trend-up mr-2"></i>
+                                Динамика обучения
+                            </h3>
+                            <div class="analytics-description">
+                                {% if selected_student %}
+                                    Студент: {{ selected_student.first_name }} {{ selected_student.last_name }} |
+                                {% endif %}
+                                Период: {{ dynamics_start_date if dynamics_start_date else 'Начало' }} - {{ dynamics_end_date if dynamics_end_date else 'Сейчас' }}
+                            </div>
+                        </div>
+                        <div class="timestamp">
+                            Обновлено: {{ now|format_datetime }}
+                        </div>
+                    </div>
+
+                    {% if validation_error %}
+                        <div class="error-alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {{ validation_error }}
+                        </div>
+                    {% endif %}
+
+                    {% if learning_dynamics %}
+                        <!-- Общая статистика студента -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">{{ learning_dynamics.total_courses }}</div>
+                                <div class="stat-label">Курсов всего</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ learning_dynamics.completed_courses }}</div>
+                                <div class="stat-label">Завершено курсов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ learning_dynamics.active_courses }}</div>
+                                <div class="stat-label">Активных курсов</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">{{ "%.1f"|format(learning_dynamics.average_score) if learning_dynamics.average_score else 0 }}</div>
+                                <div class="stat-label">Средний балл</div>
+                            </div>
+                        </div>
+
+                        <!-- График активности (если есть данные) -->
+                        {% if activity_labels and activity_data %}
+                            <div class="section-header" style="margin-top: 2rem;">
+                                <h4 class="section-title">Активность по времени</h4>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="activityChart"></canvas>
+                            </div>
+                        {% endif %}
+
+                        <!-- График прогресса по курсам (если есть данные) -->
+                        {% if module_progress_data and module_progress_data|length > 0 %}
+                            <div class="section-header" style="margin-top: 2rem;">
+                                <h4 class="section-title">Прогресс по курсам</h4>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="courseProgressChart"></canvas>
+                            </div>
+                        {% endif %}
+
+                        <!-- Курсы студента -->
+                        {% if learning_dynamics.courses and learning_dynamics.courses|length > 0 %}
+                            <div class="section-header" style="margin-top: 2rem;">
+                                <h4 class="section-title">Прогресс по курсам</h4>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="results-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Курс</th>
+                                            <th>Прогресс</th>
+                                            <th>Финальный балл</th>
+                                            <th>Статус</th>
+                                            <th>Тестов пройдено</th>
+                                            <th>Средний балл тестов</th>
+                                            <th>Дата начала</th>
+                                            <th>Дата завершения</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for course in learning_dynamics.courses %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ course.course_title }}</strong>
+                                                </td>
+                                                <td>
+                                                    <div>{{ "%.1f"|format(course.progress_percent) }}%</div>
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" style="width: {{ course.progress_percent }}%;"></div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% if course.final_score %}
+                                                        <span class="score-badge
+                                                            {% if course.final_score >= 90 %}score-excellent
+                                                            {% elif course.final_score >= 75 %}score-good
+                                                            {% elif course.final_score >= 60 %}score-average
+                                                            {% else %}score-poor{% endif %}">
+                                                            {{ "%.1f"|format(course.final_score) }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span style="color: var(--text-secondary);">—</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if course.status == 'completed' %}
+                                                        <span class="status-icon status-completed">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </span>
+                                                        Завершен
+                                                    {% elif course.status == 'active' %}
+                                                        <span class="status-icon status-active">
+                                                            <i class="fas fa-spinner"></i>
+                                                        </span>
+                                                        В процессе
+                                                    {% else %}
+                                                        <span class="status-icon status-dropped">
+                                                            <i class="fas fa-times-circle"></i>
+                                                        </span>
+                                                        Прерван
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {{ course.test_results|length if course.test_results else 0 }}
+                                                </td>
+                                                <td>
+                                                    {% if course.test_results and course.test_results|length > 0 %}
+                                                        {% set total_percentage = 0 %}
+                                                        {% for test in course.test_results %}
+                                                            {% set total_percentage = total_percentage + test.percentage %}
+                                                        {% endfor %}
+                                                        {% set avg = total_percentage / course.test_results|length %}
+                                                        <span class="score-badge
+                                                            {% if avg >= 90 %}score-excellent
+                                                            {% elif avg >= 75 %}score-good
+                                                            {% elif avg >= 60 %}score-average
+                                                            {% else %}score-poor{% endif %}">
+                                                            {{ "%.1f"|format(avg) }}%
+                                                        </span>
+                                                    {% else %}
+                                                        <span style="color: var(--text-secondary);">—</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ course.enrolled_at|format_date if course.enrolled_at else '—' }}</td>
+                                                <td>{{ course.finished_at|format_date if course.finished_at else '—' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Результаты тестов -->
+                            {% set total_tests_count = 0 %}
+                            {% for course in learning_dynamics.courses %}
+                                {% if course.test_results %}
+                                    {% set total_tests_count = total_tests_count + course.test_results|length %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if total_tests_count > 0 %}
+                                <div class="section-header" style="margin-top: 2rem;">
+                                    <h4 class="section-title">История тестов ({{ total_tests_count }})</h4>
+                                </div>
+                                <div class="table-wrapper">
+                                    <table class="results-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Дата</th>
+                                                <th>Тест</th>
+                                                <th>Курс</th>
+                                                <th>Результат</th>
+                                                <th>Балл</th>
+                                                <th>Статус</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for course in learning_dynamics.courses %}
+                                                {% if course.test_results %}
+                                                    {% for test in course.test_results %}
+                                                        <tr>
+                                                            <td>{{ test.finished_at|format_datetime if test.finished_at else '—' }}</td>
+                                                            <td>{{ test.test_title }}</td>
+                                                            <td>{{ course.course_title }}</td>
+                                                            <td>
+                                                                <div>{{ "%.1f"|format(test.score) }} / {{ "%.1f"|format(test.max_score) }}</div>
+                                                                <div class="progress-bar">
+                                                                    <div class="progress-fill" style="width: {{ test.percentage }}%;"></div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="score-badge
+                                                                    {% if test.percentage >= 90 %}score-excellent
+                                                                    {% elif test.percentage >= 75 %}score-good
+                                                                    {% elif test.percentage >= 60 %}score-average
+                                                                    {% else %}score-poor{% endif %}">
+                                                                    {{ "%.1f"|format(test.percentage) }}%
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                {% if test.percentage >= 60 %}
+                                                                    <span style="color: #16a34a; font-weight: 500;">
+                                                                        <i class="fas fa-check"></i> Сдан
+                                                                    </span>
+                                                                {% else %}
+                                                                    <span style="color: #dc2626; font-weight: 500;">
+                                                                        <i class="fas fa-times"></i> Не сдан
+                                                                    </span>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="empty-state" style="margin-top: 2rem;">
+                                <i class="fas fa-book-open"></i>
+                                <h3>Нет курсов</h3>
+                                <p>У студента нет записей на курсы за выбранный период.</p>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-user-graduate"></i>
+                            <h3>Нет данных для отображения</h3>
+                            <p>По выбранному студенту не найдено данных за указанный период. Попробуйте изменить параметры фильтрации.</p>
+                            {% if not selected_student_id %}
+                                <p style="color: #dc2626; margin-top: 0.5rem;">
+                                    <i class="fas fa-exclamation-circle"></i> Необходимо выбрать студента
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <!-- Начальный экран -->
+        <div class="analytics-block fade-in">
+            <div class="analytics-header">
+                <h3 class="analytics-title">
+                    <i class="fas fa-chart-pie mr-2"></i>
+                    Добро пожаловать в раздел аналитики
+                </h3>
+            </div>
+            <div style="text-align: center; padding: 3rem 1rem;">
+                <i class="fas fa-chart-line" style="font-size: 4rem; color: rgba(79, 70, 229, 0.3); margin-bottom: 1.5rem;"></i>
+                <h3 style="color: var(--text-primary); margin-bottom: 1rem;">
+                    Выберите тип аналитики
+                </h3>
+                <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem;">
+                    Используйте форму выше для выбора типа аналитики и настройки параметров.
+                    Доступны три типа отчетов: топ студентов, результаты тестов/курсов и динамика обучения.
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; max-width: 800px; margin: 0 auto;">
+                    <div style="background: rgba(79, 70, 229, 0.05); padding: 1.5rem; border-radius: 10px; text-align: left;">
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <div style="background: #4f46e5; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h4 style="margin: 0; color: var(--text-primary);">Топ студентов</h4>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+                            Определите лучших студентов по конкретному курсу за выбранный период времени.
+                        </p>
+                    </div>
+                    <div style="background: rgba(124, 58, 237, 0.05); padding: 1.5rem; border-radius: 10px; text-align: left;">
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <div style="background: #7c3aed; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <h4 style="margin: 0; color: var(--text-primary);">Результаты</h4>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+                            Анализируйте результаты прохождения конкретного теста или курса.
+                        </p>
+                    </div>
+                    <div style="background: rgba(14, 165, 233, 0.05); padding: 1.5rem; border-radius: 10px; text-align: left;">
+                        <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                            <div style="background: #0ea5e9; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 1rem;">
+                                <i class="fas fa-trend-up"></i>
+                            </div>
+                            <h4 style="margin: 0; color: var(--text-primary);">Динамика</h4>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+                            Отслеживайте прогресс обучения конкретного студента за период времени.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Обновление полей формы в зависимости от выбранного типа аналитики
+    function updateFormFields() {
+        const analyticType = document.getElementById('analytic_type').value;
+
+        // Отправляем форму для обновления страницы с выбранным типом
+        if (analyticType) {
+            document.getElementById('analyticsForm').submit();
+        }
+    }
+
+    // Сброс фильтров
+    function clearFilters() {
+        // Перенаправляем на страницу без параметров
+        window.location.href = '/admin/analytics';
+    }
+
+    // Валидация дат
+    function validateDates(startDateId, endDateId) {
+        const startDate = document.getElementById(startDateId)?.value;
+        const endDate = document.getElementById(endDateId)?.value;
+
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+            alert('Дата "по" должна быть позже даты "с"');
+            return false;
+        }
+        return true;
+    }
+
+    // Добавляем валидацию дат при отправке формы
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('analyticsForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const analyticType = document.getElementById('analytic_type').value;
+                let isValid = true;
+
+                if (!analyticType) {
+                    alert('Выберите тип аналитики');
+                    isValid = false;
+                } else if (analyticType === 'top_students') {
+                    if (!document.getElementById('course_id')?.value) {
+                        alert('Выберите курс для анализа');
+                        isValid = false;
+                    } else if (!validateDates('start_date', 'end_date')) {
+                        isValid = false;
+                    }
+                } else if (analyticType === 'test_completion') {
+                    if (!document.getElementById('target_id')?.value) {
+                        alert('Выберите тест или курс для анализа');
+                        isValid = false;
+                    } else if (!validateDates('completion_start_date', 'completion_end_date')) {
+                        isValid = false;
+                    }
+                } else if (analyticType === 'learning_dynamics') {
+                    if (!document.getElementById('student_id')?.value) {
+                        alert('Выберите студента для анализа');
+                        isValid = false;
+                    } else if (!validateDates('dynamics_start_date', 'dynamics_end_date')) {
+                        isValid = false;
+                    }
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
+        // График распределения результатов теста
+        {% if analytic_type == 'test_completion' and completion_data and completion_data.score_distribution %}
+            const distributionCtx = document.getElementById('resultsDistributionChart')?.getContext('2d');
+            if (distributionCtx) {
+                const distributionData = {{ completion_data.score_distribution|tojson }};
+
+                new Chart(distributionCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(distributionData),
+                        datasets: [{
+                            label: 'Количество студентов',
+                            data: Object.values(distributionData),
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.7)',
+                                'rgba(245, 158, 11, 0.7)',
+                                'rgba(234, 179, 8, 0.7)',
+                                'rgba(59, 130, 246, 0.7)',
+                                'rgba(34, 197, 94, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgb(239, 68, 68)',
+                                'rgb(245, 158, 11)',
+                                'rgb(234, 179, 8)',
+                                'rgb(59, 130, 246)',
+                                'rgb(34, 197, 94)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Студентов: ${context.raw}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'var(--text-secondary)',
+                                    stepSize: 1
+                                },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: 'var(--text-secondary)' },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+        {% endif %}
+
+        // График активности для динамики обучения
+        {% if analytic_type == 'learning_dynamics' and activity_labels and activity_data %}
+            const activityCtx = document.getElementById('activityChart')?.getContext('2d');
+            if (activityCtx) {
+                const labels = {{ activity_labels|tojson }};
+                const data = {{ activity_data|tojson }};
+
+                const showEveryN = Math.ceil(labels.length / 15);
+                const filteredLabels = labels.map((label, index) => {
+                    return index % showEveryN === 0 ? label : '';
+                });
+
+                new Chart(activityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: filteredLabels,
+                        datasets: [{
+                            label: 'Пройденные тесты',
+                            data: data,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#4f46e5',
+                            pointBorderColor: '#FFF',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        const index = context[0].dataIndex;
+                                        return labels[index] || '';
+                                    },
+                                    label: function(context) {
+                                        return `Тестов: ${context.raw}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'var(--text-secondary)',
+                                    stepSize: 1
+                                },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'var(--text-secondary)',
+                                    maxTicksLimit: 15
+                                },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+        {% endif %}
+
+        // График прогресса по курсам
+        {% if analytic_type == 'learning_dynamics' and module_progress_data and module_progress_data|length > 0 %}
+            const courseProgressCtx = document.getElementById('courseProgressChart')?.getContext('2d');
+            if (courseProgressCtx) {
+                const courseLabels = {{ module_progress_data|map(attribute='course')|list|tojson }};
+                const progressData = {{ module_progress_data|map(attribute='progress')|list|tojson }};
+
+                new Chart(courseProgressCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: courseLabels.map(label => {
+                            return label.length > 20 ? label.substring(0, 20) + '...' : label;
+                        }),
+                        datasets: [{
+                            label: 'Прогресс (%)',
+                            data: progressData,
+                            backgroundColor: progressData.map(p => {
+                                if (p >= 90) return 'rgba(34, 197, 94, 0.7)';
+                                if (p >= 70) return 'rgba(59, 130, 246, 0.7)';
+                                if (p >= 50) return 'rgba(234, 179, 8, 0.7)';
+                                return 'rgba(239, 68, 68, 0.7)';
+                            }),
+                            borderColor: progressData.map(p => {
+                                if (p >= 90) return 'rgb(34, 197, 94)';
+                                if (p >= 70) return 'rgb(59, 130, 246)';
+                                if (p >= 50) return 'rgb(234, 179, 8)';
+                                return 'rgb(239, 68, 68)';
+                            }),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const fullLabel = courseLabels[context.dataIndex];
+                                        const labelText = fullLabel.length > 30 ?
+                                            fullLabel.substring(0, 30) + '...' : fullLabel;
+                                        return `${labelText}: ${context.raw}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    color: 'var(--text-secondary)',
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: 'var(--text-secondary)' },
+                                grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}

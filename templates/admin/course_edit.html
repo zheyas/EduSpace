@@ -1,0 +1,454 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Редактирование курса — EduSpace{% endblock %}
+{% block page_title %}Редактирование курса{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .course-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+    }
+
+    .course-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .course-meta {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f1f5f9;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-label.required:after {
+        content: ' *';
+        color: #ef4444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 150px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23475569' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px;
+        padding-right: 2.5rem;
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid #cbd5e1;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .date-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .date-inputs {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1rem;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #475569;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    }
+
+    .form-hint {
+        color: #8b5cf6;
+        font-weight: 500;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Заголовок курса -->
+    <div class="course-header">
+        <div class="course-title">
+            <i class="fas fa-book"></i>
+            Редактирование курса: {{ course.title }}
+        </div>
+        <div class="course-meta">
+            <div class="meta-item">
+                <i class="fas fa-hashtag"></i>
+                <span>ID: {{ course.id }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-user-tie"></i>
+                <span>Автор: {{ course.author_id }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <span>Создан: {{ course.created_at|format_date if course.created_at else 'Неизвестно' }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-{{ 'check-circle' if course.is_active else 'times-circle' }}"></i>
+                <span>Статус: {{ 'Активен' if course.is_active else 'Неактивен' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма редактирования -->
+    <div class="form-container">
+        <div class="form-card">
+            <h2 class="form-title">Основная информация</h2>
+
+            <form method="post" id="courseForm">
+                <div class="form-group">
+                    <label class="form-label required">Название курса</label>
+                    <input type="text"
+                           name="title"
+                           class="form-control"
+                           value="{{ course.title }}"
+                           placeholder="Введите название курса"
+                           required>
+                    <div class="form-hint">
+                        <i class="fas fa-lightbulb"></i>
+                        Используйте четкое и понятное название
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Краткое описание</label>
+                        <textarea name="short_description"
+                                  class="form-control form-textarea"
+                                  placeholder="Краткое описание курса для списков и карточек"
+                                  rows="3">{{ course.short_description or '' }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Автор (преподаватель)</label>
+                        <select name="author_id" class="form-control form-select" required>
+                            <option value="">Выберите преподавателя</option>
+                            {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}"
+                                        {% if teacher.id == course.author_id %}selected{% endif %}>
+                                    {{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.email }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-hint">
+                            <i class="fas fa-user-tie"></i>
+                            Выберите преподавателя, ответственного за курс
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Полное описание</label>
+                    <textarea name="description"
+                              class="form-control form-textarea"
+                              placeholder="Подробное описание курса, цели обучения, требования..."
+                              rows="8">{{ course.description or '' }}</textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">Дата начала</label>
+                        <input type="date"
+                               name="start_date"
+                               class="form-control"
+                               value="{{ course.start_date|format_date if course.start_date else '' }}"
+                               id="startDate"
+                               required>
+                        <div class="error-message" id="startDateError">
+                            Дата начала должна быть сегодня или в будущем
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Дата окончания</label>
+                        <input type="date"
+                               name="end_date"
+                               class="form-control"
+                               value="{{ course.end_date|format_date if course.end_date else '' }}"
+                               id="endDate">
+                        <div class="error-message" id="endDateError">
+                            Дата окончания должна быть позже даты начала
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Статус курса</label>
+                    <div class="form-check">
+                        <input type="checkbox"
+                               name="is_active"
+                               class="form-check-input"
+                               id="isActive"
+                               value="true"
+                               {% if course.is_active %}checked{% endif %}>
+                        <label for="isActive" class="form-label" style="margin-bottom: 0; cursor: pointer;">
+                            Активный курс
+                        </label>
+                    </div>
+                    <div class="form-text">
+                        Неактивные курсы не будут отображаться студентам для записи
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('admin_courses') }}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-times mr-2"></i> Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i> Сохранить изменения
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('courseForm');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const startDateError = document.getElementById('startDateError');
+    const endDateError = document.getElementById('endDateError');
+
+    // Установка минимальной даты для начала курса (сегодня)
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput.min = today;
+
+    // Валидация дат
+    function validateDates() {
+        let isValid = true;
+
+        // Проверка даты начала
+        if (startDateInput.value) {
+            const startDate = new Date(startDateInput.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (startDate < today) {
+                startDateError.classList.add('show');
+                isValid = false;
+            } else {
+                startDateError.classList.remove('show');
+            }
+        }
+
+        // Проверка даты окончания
+        if (startDateInput.value && endDateInput.value) {
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+
+            if (endDate <= startDate) {
+                endDateError.classList.add('show');
+                isValid = false;
+            } else {
+                endDateError.classList.remove('show');
+            }
+        } else if (endDateInput.value) {
+            endDateError.classList.remove('show');
+        }
+
+        return isValid;
+    }
+
+    // События изменения дат
+    startDateInput.addEventListener('change', validateDates);
+    endDateInput.addEventListener('change', validateDates);
+
+    // Валидация при отправке формы
+    form.addEventListener('submit', function(e) {
+        if (!validateDates()) {
+            e.preventDefault();
+            alert('Пожалуйста, исправьте ошибки в датах.');
+        }
+    });
+
+    // Установка placeholder для пустых дат
+    if (!startDateInput.value) {
+        startDateInput.value = today;
+    }
+
+    // Автоматическое обновление минимальной даты для конца при изменении начала
+    startDateInput.addEventListener('change', function() {
+        if (this.value) {
+            const minEndDate = new Date(this.value);
+            minEndDate.setDate(minEndDate.getDate() + 1);
+            endDateInput.min = minEndDate.toISOString().split('T')[0];
+
+            // Если текущая дата конца раньше новой минимальной, сбросить ее
+            if (endDateInput.value && new Date(endDateInput.value) <= minEndDate) {
+                endDateInput.value = '';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

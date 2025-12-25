@@ -1,0 +1,768 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Создание материала — EduSpace{% endblock %}
+{% block page_title %}Создание учебного материала{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .module-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+    }
+
+    .module-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .module-meta {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .form-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .form-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        color: #64748b;
+        font-size: 1rem;
+    }
+
+    .module-selector {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .selector-title {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .selector-options {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .selector-option {
+        flex: 1;
+        padding: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+
+    .selector-option:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+    }
+
+    .selector-option.active {
+        border-color: #4f46e5;
+        background: rgba(79, 70, 229, 0.05);
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+    }
+
+    .option-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #64748b;
+    }
+
+    .selector-option.active .option-icon {
+        color: #4f46e5;
+    }
+
+    .option-title {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.25rem;
+    }
+
+    .option-desc {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .module-dropdown {
+        display: none;
+        margin-top: 1rem;
+    }
+
+    .module-dropdown.show {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .module-create-form {
+        display: none;
+        margin-top: 1rem;
+    }
+
+    .module-create-form.show {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .selector-options {
+            flex-direction: column;
+        }
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-label.required:after {
+        content: ' *';
+        color: #ef4444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23475569' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px;
+        padding-right: 2.5rem;
+    }
+
+    .form-textarea {
+        min-height: 200px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1rem;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #475569;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    }
+
+    .content-type-info {
+        display: none;
+        margin-top: 0.5rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border-left: 4px solid #4f46e5;
+        font-size: 0.9rem;
+    }
+
+    .content-type-info.active {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .form-hint {
+        color: #8b5cf6;
+        font-weight: 500;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .content-examples {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .example-card {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .example-title {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .example-text {
+        color: #64748b;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Заголовок модуля -->
+    <div class="module-header">
+        <div class="module-title">
+            <i class="fas fa-layer-group"></i>
+            {{ module.title }}
+        </div>
+        <div class="module-meta">
+            <div class="meta-item">
+                <i class="fas fa-hashtag"></i>
+                <span>ID: {{ module.id }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-book"></i>
+                <span>Курс: {{ course.title if course else 'Неизвестно' }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-sort-numeric-down"></i>
+                <span>Порядок: #{{ next_order }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма создания материала -->
+    <div class="form-container">
+        <div class="form-header">
+            <div class="form-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <h1 class="form-title">Создание учебного материала</h1>
+            <p class="form-subtitle">Добавьте новый материал для изучения студентами</p>
+        </div>
+
+        <!-- Селектор модуля -->
+        <div class="module-selector">
+            <div class="selector-title">
+                <i class="fas fa-cube"></i>
+                Выберите модуль для материала
+            </div>
+
+            <div class="selector-options">
+                <div class="selector-option active" id="currentModuleOption">
+                    <div class="option-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="option-title">Текущий модуль</div>
+                    <div class="option-desc">{{ module.title }}</div>
+                </div>
+
+                <div class="selector-option" id="selectModuleOption">
+                    <div class="option-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div class="option-title">Выбрать другой модуль</div>
+                    <div class="option-desc">Из существующих модулей курса</div>
+                </div>
+
+                <div class="selector-option" id="createModuleOption">
+                    <div class="option-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div class="option-title">Создать новый модуль</div>
+                    <div class="option-desc">Создать новый модуль в этом курсе</div>
+                </div>
+            </div>
+
+            <!-- Выпадающий список модулей -->
+            <div class="module-dropdown" id="moduleDropdown">
+                <div class="form-group">
+                    <label class="form-label required">Выберите модуль</label>
+                    <select name="selected_module_id" class="form-control form-select" id="moduleSelect">
+                        <option value="">Выберите модуль...</option>
+                        {% for mod in all_modules %}
+                            <option value="{{ mod.id }}" {% if mod.id == module.id %}selected{% endif %}>
+                                #{{ mod.module_order }} - {{ mod.title }}
+                                {% if mod.id == module.id %}(текущий){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">
+                        Выберите модуль из списка существующих модулей курса
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма создания нового модуля -->
+            <div class="module-create-form" id="moduleCreateForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">Название нового модуля</label>
+                        <input type="text"
+                               name="new_module_title"
+                               class="form-control"
+                               placeholder="Введите название модуля"
+                               id="newModuleTitle">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Порядок модуля</label>
+                        <input type="number"
+                               name="new_module_order"
+                               class="form-control"
+                               min="1"
+                               value="{{ all_modules|length + 1 }}"
+                               id="newModuleOrder">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание модуля</label>
+                    <textarea name="new_module_description"
+                              class="form-control form-textarea"
+                              placeholder="Краткое описание модуля..."
+                              rows="3"
+                              id="newModuleDescription"></textarea>
+                </div>
+
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i>
+                    Новый модуль будет создан в текущем курсе "{{ course.title }}"
+                </div>
+            </div>
+        </div>
+
+        <form method="post" id="materialForm">
+            <input type="hidden" name="selected_module_id" id="selectedModuleId" value="{{ module.id }}">
+            <input type="hidden" name="create_new_module" id="createNewModule" value="false">
+
+            <!-- Название материала -->
+            <div class="form-group">
+                <label class="form-label required">Название материала</label>
+                <input type="text"
+                       name="title"
+                       class="form-control"
+                       placeholder="Например: 'Введение в Python' или 'Основы ООП'"
+                       required
+                       id="materialTitle">
+                <div class="form-hint">
+                    <i class="fas fa-lightbulb"></i>
+                    Используйте понятные и описательные названия
+                </div>
+            </div>
+
+            <!-- Тип контента и порядок -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label required">Тип контента</label>
+                    <select name="content_type" class="form-control form-select" id="contentType" required>
+                        <option value="">Выберите тип контента</option>
+                        {% for type in content_types %}
+                            <option value="{{ type }}">
+                                {% if type == 'text' %}📝 Текст
+                                {% elif type == 'video' %}🎥 Видео
+                                {% elif type == 'pdf' %}📄 PDF документ
+                                {% elif type == 'link' %}🔗 Ссылка
+                                {% elif type == 'quiz' %}❓ Тест/Викторина
+                                {% else %}{{ type|title }}{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Порядковый номер</label>
+                    <input type="number"
+                           name="material_order"
+                           class="form-control"
+                           min="1"
+                           value="{{ next_order }}"
+                           placeholder="Порядок в модуле"
+                           required
+                           id="materialOrder">
+                    <div class="form-hint">
+                        <i class="fas fa-sort"></i>
+                        Определяет последовательность изучения
+                    </div>
+                </div>
+            </div>
+
+            <!-- Информация о типе контента -->
+            <div id="contentTypeInfo" class="content-type-info">
+                <strong>Подсказка:</strong>
+                <span id="contentTypeHint">Выберите тип контента для получения инструкций</span>
+            </div>
+
+            <!-- Содержимое материала -->
+            <div class="form-group">
+                <label class="form-label required">Содержимое материала</label>
+                <textarea name="content"
+                          class="form-control form-textarea"
+                          id="contentInput"
+                          placeholder="Введите содержимое материала..."
+                          rows="8"
+                          required></textarea>
+
+                <div class="form-text">
+                    <i class="fas fa-info-circle"></i>
+                    В зависимости от выбранного типа контента, укажите:
+                    <div class="content-examples">
+                        <div class="example-card">
+                            <div class="example-title">📝 Текст</div>
+                            <div class="example-text">Полный текст лекции или статьи с форматированием</div>
+                        </div>
+                        <div class="example-card">
+                            <div class="example-title">🎥 Видео</div>
+                            <div class="example-text">Ссылка на YouTube или другую видеоплатформу</div>
+                        </div>
+                        <div class="example-card">
+                            <div class="example-title">📄 PDF</div>
+                            <div class="example-text">Ссылка на PDF файл или путь к нему на сервере</div>
+                        </div>
+                        <div class="example-card">
+                            <div class="example-title">🔗 Ссылка</div>
+                            <div class="example-text">URL адрес внешнего ресурса для изучения</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="module_id" value="{{ module.id }}">
+
+            <!-- Кнопки действий -->
+            <div class="form-actions">
+                <a href="{{ url_for('admin_view_module', module_id=module.id) }}"
+                   class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i> Вернуться к модулю
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus-circle mr-2"></i> Создать материал
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Элементы для выбора модуля
+    const currentModuleOption = document.getElementById('currentModuleOption');
+    const selectModuleOption = document.getElementById('selectModuleOption');
+    const createModuleOption = document.getElementById('createModuleOption');
+    const moduleDropdown = document.getElementById('moduleDropdown');
+    const moduleCreateForm = document.getElementById('moduleCreateForm');
+    const moduleSelect = document.getElementById('moduleSelect');
+    const selectedModuleId = document.getElementById('selectedModuleId');
+    const createNewModule = document.getElementById('createNewModule');
+    const newModuleTitle = document.getElementById('newModuleTitle');
+    const newModuleOrder = document.getElementById('newModuleOrder');
+    const newModuleDescription = document.getElementById('newModuleDescription');
+    const materialForm = document.getElementById('materialForm');
+
+    // Элементы для типа контента
+    const contentTypeSelect = document.getElementById('contentType');
+    const contentTypeInfo = document.getElementById('contentTypeInfo');
+    const contentTypeHint = document.getElementById('contentTypeHint');
+    const contentInput = document.getElementById('contentInput');
+
+    // Инструкции для разных типов контента
+    const typeHints = {
+        'text': 'Введите текст лекции. Используйте Markdown для форматирования: **жирный**, *курсив*, списки, заголовки.',
+        'video': 'Укажите полную ссылку на видео (YouTube, Vimeo и т.д.). Пример: https://www.youtube.com/watch?v=...',
+        'pdf': 'Укажите ссылку на PDF файл или путь к файлу на сервере. Файл должен быть доступен для скачивания.',
+        'link': 'Введите полный URL адрес внешнего ресурса. Пример: https://learnpython.org/',
+        'quiz': 'Для тестов создавайте вопросы отдельно через интерфейс управления тестами.'
+    };
+
+    // Плейсхолдеры для разных типов контента
+    const placeholders = {
+        'text': 'Введите текст материала...\n\n# Заголовок\nОсновной текст...\n\n## Подзаголовок\n- Пункт списка\n- Еще один пункт\n\n**Жирный текст** и *курсив*...',
+        'video': 'https://www.youtube.com/watch?v=example\nhttps://vimeo.com/123456789',
+        'pdf': 'https://example.com/document.pdf\n/uploads/materials/file.pdf',
+        'link': 'https://learnpython.org/\nhttps://docs.python.org/3/tutorial/',
+        'quiz': 'Создайте вопросы теста через интерфейс управления тестами.'
+    };
+
+    // Обработка выбора модуля
+    function selectModuleOption(option) {
+        // Сбросить все опции
+        currentModuleOption.classList.remove('active');
+        selectModuleOption.classList.remove('active');
+        createModuleOption.classList.remove('active');
+
+        // Скрыть все формы
+        moduleDropdown.classList.remove('show');
+        moduleCreateForm.classList.remove('show');
+
+        // Активировать выбранную опцию
+        option.classList.add('active');
+
+        // Показать соответствующую форму
+        if (option === selectModuleOption) {
+            moduleDropdown.classList.add('show');
+            createNewModule.value = 'false';
+            selectedModuleId.value = moduleSelect.value;
+        } else if (option === createModuleOption) {
+            moduleCreateForm.classList.add('show');
+            createNewModule.value = 'true';
+            selectedModuleId.value = ''; // Сбросить выбранный модуль
+        } else {
+            // Текущий модуль
+            createNewModule.value = 'false';
+            selectedModuleId.value = '{{ module.id }}';
+        }
+    }
+
+    // Обработчики кликов на опции
+    currentModuleOption.addEventListener('click', () => selectModuleOption(currentModuleOption));
+    selectModuleOption.addEventListener('click', () => selectModuleOption(selectModuleOption));
+    createModuleOption.addEventListener('click', () => selectModuleOption(createModuleOption));
+
+    // Обработчик изменения выбранного модуля
+    moduleSelect.addEventListener('change', function() {
+        selectedModuleId.value = this.value;
+    });
+
+    // Обработчик изменения типа контента
+    contentTypeSelect.addEventListener('change', function() {
+        const selectedType = this.value;
+
+        if (selectedType && typeHints[selectedType]) {
+            contentTypeHint.textContent = typeHints[selectedType];
+            contentTypeInfo.classList.add('active');
+            contentInput.placeholder = placeholders[selectedType];
+        } else {
+            contentTypeInfo.classList.remove('active');
+            contentInput.placeholder = 'Введите содержимое материала...';
+        }
+    });
+
+    // Валидация формы
+    materialForm.addEventListener('submit', function(e) {
+        let isValid = true;
+        const errors = [];
+
+        // Проверка выбора модуля
+        if (createNewModule.value === 'true') {
+            // Проверка создания нового модуля
+            if (!newModuleTitle.value.trim()) {
+                errors.push('Введите название нового модуля');
+                isValid = false;
+            }
+            if (!newModuleOrder.value || newModuleOrder.value < 1) {
+                errors.push('Укажите корректный порядок модуля');
+                isValid = false;
+            }
+        } else if (createNewModule.value === 'false' && !selectedModuleId.value) {
+            errors.push('Выберите модуль для материала');
+            isValid = false;
+        }
+
+        // Проверка названия материала
+        const materialTitle = document.getElementById('materialTitle');
+        if (!materialTitle.value.trim()) {
+            errors.push('Введите название материала');
+            isValid = false;
+        }
+
+        // Проверка типа контента
+        if (!contentTypeSelect.value) {
+            errors.push('Выберите тип контента');
+            isValid = false;
+        }
+
+        // Проверка содержимого
+        if (!contentInput.value.trim()) {
+            errors.push('Введите содержимое материала');
+            isValid = false;
+        }
+
+        // Дополнительная валидация для видео и ссылок
+        const contentType = contentTypeSelect.value;
+        const content = contentInput.value.trim();
+
+        if ((contentType === 'video' || contentType === 'pdf' || contentType === 'link') &&
+            !content.startsWith('http://') && !content.startsWith('https://')) {
+            errors.push('Для этого типа контента необходимо указать полный URL адрес (начинающийся с http:// или https://)');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Пожалуйста, исправьте ошибки:\n' + errors.join('\n'));
+            return false;
+        }
+
+        // Если создается новый модуль, добавляем данные в форму
+        if (createNewModule.value === 'true') {
+            const newModuleData = document.createElement('div');
+            newModuleData.innerHTML = `
+                <input type="hidden" name="new_module_title" value="${newModuleTitle.value}">
+                <input type="hidden" name="new_module_order" value="${newModuleOrder.value}">
+                <input type="hidden" name="new_module_description" value="${newModuleDescription.value}">
+            `;
+            materialForm.appendChild(newModuleData);
+        }
+
+        return true;
+    });
+
+    // Анимация при фокусе
+    const formControls = document.querySelectorAll('.form-control');
+    formControls.forEach(control => {
+        control.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+
+        control.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+});
+</script>
+{% endblock %}

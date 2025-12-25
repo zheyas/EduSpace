@@ -1,0 +1,85 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Создание модуля — EduSpace{% endblock %}
+{% block page_title %}Создание нового модуля{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form method="post" class="space-y-6">
+            <div class="space-y-6">
+                <!-- Выбор курса -->
+                <div>
+                    <label for="course_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        Курс *
+                    </label>
+                    <select id="course_id" name="course_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Выберите курс</option>
+                        {% for course in courses %}
+                            <option value="{{ course.id }}">
+                                {{ course.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Название модуля -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+                        Название модуля *
+                    </label>
+                    <input type="text" id="title" name="title" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Введите название модуля">
+                </div>
+
+                <!-- Краткое описание -->
+                <div>
+                    <label for="short_description" class="block text-sm font-medium text-gray-700 mb-1">
+                        Краткое описание
+                    </label>
+                    <textarea id="short_description" name="short_description" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Краткое описание модуля"></textarea>
+                </div>
+
+                <!-- Порядковый номер -->
+                <div>
+                    <label for="module_order" class="block text-sm font-medium text-gray-700 mb-1">
+                        Порядковый номер
+                    </label>
+                    <input type="number" id="module_order" name="module_order" value="1"
+                           min="1" max="100"
+                           class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="mt-1 text-sm text-gray-500">Определяет порядок модулей в курсе</p>
+                </div>
+
+                <!-- Ориентировочная длительность -->
+                <div>
+                    <label for="estimated_duration" class="block text-sm font-medium text-gray-700 mb-1">
+                        Ориентировочная длительность (минуты)
+                    </label>
+                    <input type="number" id="estimated_duration" name="estimated_duration"
+                           min="1" max="1000"
+                           class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Например, 120">
+                    <p class="mt-1 text-sm text-gray-500">Примерное время изучения модуля в минутах</p>
+                </div>
+            </div>
+
+            <!-- Кнопки -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{{ url_for('admin_modules') }}"
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition duration-150">
+                    Отмена
+                </a>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150">
+                    Создать модуль
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

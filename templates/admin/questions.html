@@ -1,0 +1,594 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Управление вопросами — EduSpace{% endblock %}
+{% block page_title %}Управление вопросами{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Стили для шаблона вопросов */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .section-title {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--text-primary);
+        font-size: 1.6rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Стили для информации о тесте */
+    .test-info {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .test-info h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .test-info p {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    /* Фильтры */
+    .filters-container {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .form-control {
+        padding: 0.625rem 0.75rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Карточки вопросов */
+    .questions-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .question-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .question-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .question-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1.125rem;
+    }
+
+    .question-meta {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .question-type {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .type-single {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .type-multiple {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+    }
+
+    .type-text {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .question-points {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .question-content {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    /* Список опций */
+    .options-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .option-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: #f8fafc;
+    }
+
+    .option-item.correct {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .option-index {
+        background: var(--primary-color);
+        color: white;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .option-item.correct .option-index {
+        background: #10b981;
+    }
+
+    .option-text {
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    /* Объяснение */
+    .explanation {
+        padding: 0.75rem;
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Футер вопроса */
+    .question-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .question-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        padding: 0.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border: 1px solid transparent;
+    }
+
+    .btn-edit {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info-color);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-edit:hover {
+        background: rgba(59, 130, 246, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-delete:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+    }
+
+    /* Пагинация */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        background: white;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        min-width: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pagination-btn:hover {
+        background: #f8fafc;
+        color: var(--primary-color);
+        border-color: rgba(79, 70, 229, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        font-weight: 600;
+        border-color: transparent;
+    }
+
+    .pagination-btn.disabled {
+        background: #f8fafc;
+        color: #cbd5e1;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .pagination-btn.disabled:hover {
+        transform: none;
+        background: #f8fafc;
+        border-color: var(--border-color);
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .filters-form {
+            grid-template-columns: 1fr;
+        }
+
+        .question-header {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .question-meta {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="section-header">
+        <h2 class="section-title">Управление вопросами</h2>
+        {% if test_id %}
+            <a href="{{ url_for('admin_create_question', test_id=test_id) }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle mr-2"></i> Добавить вопрос
+            </a>
+        {% else %}
+            <a href="#" class="btn btn-primary disabled" title="Выберите тест для добавления вопроса">
+                <i class="fas fa-plus-circle mr-2"></i> Добавить вопрос
+            </a>
+        {% endif %}
+    </div>
+
+    {% if selected_test %}
+        <div class="test-info">
+            <h3>Тест: {{ selected_test.title }}</h3>
+            <p>ID: {{ selected_test.id }} • Макс. балл: {{ selected_test.max_score }} • Лимит времени: {{ selected_test.time_limit }} мин</p>
+        </div>
+    {% endif %}
+
+    <!-- Фильтры -->
+    <div class="filters-container">
+        <form method="get" class="filters-form">
+            <div class="form-group">
+                <label class="form-label">Поиск</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Текст вопроса..."
+                       value="{{ search }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Тест</label>
+                <select name="test_id" class="form-control" onchange="this.form.submit()">
+                    <option value="">Все тесты</option>
+                    {% for test in tests %}
+                        <option value="{{ test.id }}" {% if test.id|string == test_id|string %}selected{% endif %}>
+                            {{ test.title }} ({{ test.course_title }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Тип вопроса</label>
+                <select name="question_type" class="form-control" onchange="this.form.submit()">
+                    <option value="">Все типы</option>
+                    <option value="single" {% if question_type == 'single' %}selected{% endif %}>Один ответ</option>
+                    <option value="multiple" {% if question_type == 'multiple' %}selected{% endif %}>Несколько ответов</option>
+                    <option value="text" {% if question_type == 'text' %}selected{% endif %}>Текстовый ответ</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search mr-2"></i> Применить фильтры
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Список вопросов -->
+    <div class="questions-container">
+        {% for question in questions_with_answers %}
+            <div class="question-card">
+                <div class="question-header">
+                    <div class="question-title">
+                        Вопрос #{{ loop.index + ((page-1) * per_page) }}
+                        {% if question.question.question_order %}
+                            <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                                (Порядок: {{ question.question.question_order }})
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="question-meta">
+                        {% if question.question.type == 'single' %}
+                            <span class="question-type type-single">
+                                <i class="fas fa-circle mr-1"></i> Один ответ
+                            </span>
+                        {% elif question.question.type == 'multiple' %}
+                            <span class="question-type type-multiple">
+                                <i class="fas fa-check-double mr-1"></i> Несколько ответов
+                            </span>
+                        {% else %}
+                            <span class="question-type type-text">
+                                <i class="fas fa-font mr-1"></i> Текстовый ответ
+                            </span>
+                        {% endif %}
+
+                        <span class="question-points">
+                            {% set points = question.question.points if question.question.points else 1 %}
+                            {{ points }} балл(ов)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="question-content">
+                    {{ question.question.text|safe if question.question.text else 'Без текста' }}
+                </div>
+
+                {% if question.question.type in ['single', 'multiple'] and question.answers %}
+                    <div class="options-list">
+                        {% for answer in question.answers %}
+                            <div class="option-item {% if answer.is_correct %}correct{% endif %}">
+                                <div class="option-index">
+                                    {{ loop.index|upper }}
+                                </div>
+                                <div class="option-text">
+                                    {{ answer.text if answer.text else 'Без текста' }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="explanation">
+                        <strong>Объяснение:</strong> {{ question.question.explanation or 'Нет объяснения' }}
+                    </div>
+                {% elif question.question.type == 'text' %}
+                    <div class="explanation">
+                        <strong>Ожидаемый ответ:</strong> {{ question.question.correct_answer_text or 'Любой текстовый ответ' }}
+                    </div>
+                {% endif %}
+
+                <div class="question-footer">
+                    <div>
+                        <small style="color: var(--text-secondary);">
+                            {% if question.question.test_title %}
+                                Тест: {{ question.question.test_title }}
+                            {% else %}
+                                Тест не указан
+                            {% endif %}
+                        </small>
+                    </div>
+
+                    <div class="question-actions">
+                        <a href="{{ url_for('admin_edit_question', question_id=question.question.id) }}"
+                           class="btn-icon btn-edit"
+                           title="Редактировать">
+                            <i class="fas fa-edit"></i>
+                        </a>
+
+                        <form method="post"
+                              action="{{ url_for('admin_delete_question', question_id=question.question.id) }}"
+                              onsubmit="return confirm('Вы уверены, что хотите удалить этот вопрос?');"
+                              style="display: inline;">
+                            <button type="submit"
+                                    class="btn-icon btn-delete"
+                                    title="Удалить">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-question-circle fa-3x mb-4"></i>
+                <h3>Вопросы не найдены</h3>
+                <p class="mb-4">Измените параметры фильтрации или создайте новый вопрос</p>
+                {% if test_id %}
+                    <a href="{{ url_for('admin_create_question', test_id=test_id) }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle mr-2"></i> Добавить вопрос
+                    </a>
+                {% else %}
+                    <p class="text-gray-500">Выберите тест для добавления вопроса</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('admin_questions', page=page-1, search=search, test_id=test_id, question_type=question_type) }}"
+                   class="pagination-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% else %}
+                <span class="pagination-btn disabled">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+                {% if p >= page - 2 and p <= page + 2 %}
+                    <a href="{{ url_for('admin_questions', page=p, search=search, test_id=test_id, question_type=question_type) }}"
+                       class="pagination-btn {% if p == page %}active{% endif %}">
+                        {{ p }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page < total_pages %}
+                <a href="{{ url_for('admin_questions', page=page+1, search=search, test_id=test_id, question_type=question_type) }}"
+                   class="pagination-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="pagination-btn disabled">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Автоматическая отправка формы при изменении селектов
+    document.addEventListener('DOMContentLoaded', function() {
+        const selects = document.querySelectorAll('select[name="test_id"], select[name="question_type"]');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
+    });
+</script>
+{% endblock %}

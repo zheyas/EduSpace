@@ -1,0 +1,263 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Создание модуля — EduSpace{% endblock %}
+{% block page_title %}Создание модуля{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .course-info-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+    }
+
+    .course-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .course-meta {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f1f5f9;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-label.required:after {
+        content: ' *';
+        color: #ef4444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1rem;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #475569;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Информация о курсе -->
+    <div class="course-info-card">
+        <div class="course-title">
+            <i class="fas fa-book"></i>
+            {{ course.title }}
+        </div>
+        <div class="course-meta">
+            <div class="meta-item">
+                <i class="fas fa-hashtag"></i>
+                <span>ID: {{ course.id }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-sort-numeric-down"></i>
+                <span>Порядок нового модуля: #{{ next_order }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма создания модуля -->
+    <div class="form-container">
+        <div class="form-card">
+            <h2 class="form-title">Создание нового модуля</h2>
+
+            <form method="post">
+                <div class="form-group">
+                    <label class="form-label required">Название модуля</label>
+                    <input type="text"
+                           name="title"
+                           class="form-control"
+                           placeholder="Введите название модуля"
+                           required>
+                    <div class="form-text">
+                        Например: "Введение в Python" или "Основы ООП"
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Краткое описание</label>
+                    <textarea name="short_description"
+                              class="form-control form-textarea"
+                              placeholder="Краткое описание модуля, что студенты узнают..."
+                              rows="3"></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">Порядковый номер</label>
+                        <input type="number"
+                               name="module_order"
+                               class="form-control"
+                               min="1"
+                               value="{{ next_order }}"
+                               required>
+                        <div class="form-text">
+                            Определяет порядок изучения модулей
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ориентировочная длительность (мин)</label>
+                        <input type="number"
+                               name="estimated_duration"
+                               class="form-control"
+                               min="0"
+                               placeholder="Например: 60">
+                        <div class="form-text">
+                            Приблизительное время на изучение модуля
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="course_id" value="{{ course.id }}">
+
+                <div class="form-actions">
+                    <a href="{{ url_for('admin_view_course', course_id=course.id) }}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-times mr-2"></i> Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus-circle mr-2"></i> Создать модуль
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

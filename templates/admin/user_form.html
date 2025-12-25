@@ -1,0 +1,312 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if user %}Редактирование пользователя{% else %}Создание пользователя{% endif %} — EduSpace{% endblock %}
+{% block page_title %}{% if user %}Редактирование пользователя{% else %}Создание пользователя{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        background: rgba(26, 26, 26, 0.5);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 3px rgba(255, 245, 0, 0.1);
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23FF79FE' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+
+    .form-text {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 0.3rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 121, 254, 0.2);
+    }
+
+    .required::after {
+        content: " *";
+        color: #e74c3c;
+    }
+
+    .password-toggle {
+        position: relative;
+    }
+
+    .password-toggle-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: rgba(255, 121, 254, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 121, 254, 0.3);
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 121, 254, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .user-details h3 {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        margin-bottom: 0.3rem;
+    }
+
+    .user-details p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        {% if user %}
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p>ID: {{ user.id }} • Email: {{ user.email }} • Роль: {{ user.role|title }}</p>
+                    <p>Создан: {{ user.created_at.strftime('%d.%m.%Y %H:%M') if user.created_at else 'Не указано' }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="form-card">
+            <h2 class="form-title">
+                {% if user %}
+                    Редактирование пользователя
+                {% else %}
+                    Создание нового пользователя
+                {% endif %}
+            </h2>
+
+            <form method="post">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">Имя</label>
+                        <input type="text"
+                               name="first_name"
+                               class="form-control"
+                               value="{{ user.first_name if user else '' }}"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Фамилия</label>
+                        <input type="text"
+                               name="last_name"
+                               class="form-control"
+                               value="{{ user.last_name if user else '' }}"
+                               required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">Email</label>
+                        <input type="email"
+                               name="email"
+                               class="form-control"
+                               value="{{ user.email if user else '' }}"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Роль</label>
+                        <select name="role" class="form-control form-select" required>
+                            {% for role in user_roles %}
+                                <option value="{{ role.value }}"
+                                        {% if user and user.role == role.value %}selected{% endif %}>
+                                    {{ role.value|title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label {% if not user %}required{% endif %}">
+                        Пароль
+                        {% if user %}<span class="form-text">(оставьте пустым, если не нужно менять)</span>{% endif %}
+                    </label>
+                    <div class="password-toggle">
+                        <input type="password"
+                               name="password"
+                               class="form-control"
+                               id="password"
+                               {% if not user %}required{% endif %}>
+                        <button type="button"
+                                class="password-toggle-btn"
+                                onclick="togglePasswordVisibility()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Подтверждение пароля</label>
+                    <input type="password"
+                           name="confirm_password"
+                           class="form-control"
+                           id="confirm_password">
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                        <i class="fas fa-times mr-2"></i> Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i> Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirm_password');
+        const toggleBtn = document.querySelector('.password-toggle-btn i');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            confirmInput.type = 'text';
+            toggleBtn.classList.remove('fa-eye');
+            toggleBtn.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            confirmInput.type = 'password';
+            toggleBtn.classList.remove('fa-eye-slash');
+            toggleBtn.classList.add('fa-eye');
+        }
+    }
+
+    // Проверка совпадения паролей
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        const isNewUser = {% if not user %}true{% else %}false{% endif %};
+
+        if (isNewUser || (password && confirmPassword)) {
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Пароли не совпадают!');
+            }
+        }
+    });
+
+    // Автогенерация пароля
+    function generatePassword() {
+        const length = 12;
+        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let password = "";
+
+        for (let i = 0; i < length; i++) {
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+
+        document.getElementById('password').value = password;
+        document.getElementById('confirm_password').value = password;
+
+        // Показать пароль для копирования
+        document.getElementById('password').type = 'text';
+        document.getElementById('confirm_password').type = 'text';
+        document.querySelector('.password-toggle-btn i').classList.remove('fa-eye');
+        document.querySelector('.password-toggle-btn i').classList.add('fa-eye-slash');
+
+        // Скопировать в буфер обмена
+        navigator.clipboard.writeText(password).then(() => {
+            alert('Пароль сгенерирован и скопирован в буфер обмена!');
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,1056 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if test %}Редактирование теста{% else %}Создание теста{% endif %} — EduSpace{% endblock %}
+{% block page_title %}{% if test %}Редактирование теста{% else %}Создание теста{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-dark: #4338ca;
+        --secondary-color: #7c3aed;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --text-tertiary: #9ca3af;
+        --border-color: #e5e7eb;
+        --border-light: #f3f4f6;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-tertiary: #f1f5f9;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --radius-sm: 0.375rem;
+        --radius-md: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        --radius-2xl: 1.5rem;
+    }
+
+    /* Основные стили контейнера */
+    .form-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .form-card {
+        background: linear-gradient(135deg, var(--bg-primary) 0%, #fefefe 100%);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-xl);
+        padding: 2.5rem;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .form-title {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--text-primary);
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.75rem;
+    }
+
+    .form-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        border-radius: var(--radius-sm);
+    }
+
+    /* Секции формы */
+    .form-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-light);
+    }
+
+    .form-section-title {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--text-primary);
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-section-title i {
+        color: var(--primary-color);
+    }
+
+    /* Грид для формы */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Поля ввода */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-label.required::after {
+        content: '*';
+        color: var(--danger-color);
+        margin-left: 0.25rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1.25em;
+        padding-right: 3rem;
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    /* Подсказки */
+    .form-text {
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+        margin-top: 0.375rem;
+        line-height: 1.4;
+    }
+
+    /* Стили для вопросов */
+    .questions-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .questions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .questions-title {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--text-primary);
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .question-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .question-number {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1rem;
+        background: var(--bg-tertiary);
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-sm);
+    }
+
+    .remove-question {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        padding: 0.5rem 0.875rem;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .remove-question:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+
+    .question-type-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9375rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+    }
+
+    .question-type-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .question-textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9375rem;
+        min-height: 100px;
+        resize: vertical;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    .question-textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Стили для ответов */
+    .answers-container {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .answers-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .answers-title {
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 0.9375rem;
+    }
+
+    .add-answer {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        padding: 0.5rem 0.875rem;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .add-answer:hover {
+        background: rgba(16, 185, 129, 0.2);
+    }
+
+    .answer-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background: var(--bg-primary);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .answer-checkbox {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid var(--border-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: var(--bg-primary);
+        transition: all 0.2s ease;
+    }
+
+    .answer-checkbox.checked {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .answer-input {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+    }
+
+    .answer-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+    }
+
+    .remove-answer {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        padding: 0.5rem;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.75rem;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+
+    .remove-answer:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+
+    /* Текстовые вопросы */
+    .text-question-section {
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .correct-answer-label {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.875rem;
+    }
+
+    .correct-answer-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9375rem;
+        min-height: 80px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .correct-answer-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Кнопки */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .add-question-btn {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9375rem;
+    }
+
+    .add-question-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Состояние без вопросов */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: var(--bg-secondary);
+        border: 2px dashed var(--border-color);
+        border-radius: var(--radius-lg);
+        color: var(--text-secondary);
+    }
+
+    .empty-state i {
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: var(--text-primary);
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .form-card {
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+        }
+
+        .form-section {
+            padding: 1.25rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .questions-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .add-question-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .question-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .form-card {
+            padding: 1.25rem;
+        }
+
+        .form-title {
+            font-size: 1.25rem;
+        }
+
+        .answer-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+
+        .answer-checkbox {
+            align-self: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h2 class="form-title">
+            {% if test %}
+                Редактирование теста
+            {% else %}
+                Создание нового теста
+            {% endif %}
+        </h2>
+
+        <form method="post" id="testForm">
+            <!-- Основная информация -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-info-circle"></i> Основная информация
+                </h3>
+
+                <div class="form-group">
+                    <label class="form-label required">Название теста</label>
+                    <input type="text"
+                           name="title"
+                           class="form-control"
+                           value="{{ test.title if test else '' }}"
+                           placeholder="Введите название теста"
+                           required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">Курс</label>
+                        <select name="course_id"
+                                class="form-control form-select"
+                                id="course-select"
+                                onchange="loadCourseModules(this.value)"
+                                required>
+                            <option value="">Выберите курс</option>
+                            {% for course in courses %}
+                                <option value="{{ course.id }}"
+                                        {% if test and test.course_id == course.id %}selected{% endif %}>
+                                    {{ course.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <p class="form-text">Выберите курс, к которому относится тест</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Модуль (опционально)</label>
+                        <select name="module_id"
+                                class="form-control form-select"
+                                id="module-select">
+                            <option value="">Выберите модуль</option>
+                            {% for module in modules %}
+                                <option value="{{ module.id }}"
+                                        {% if test and test.module_id == module.id %}selected{% endif %}>
+                                    {{ module.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <p class="form-text">Модуль внутри выбранного курса</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание теста</label>
+                    <textarea name="description"
+                              class="form-control form-textarea"
+                              placeholder="Описание теста, инструкции...">{{ test.description if test else '' }}</textarea>
+                    <p class="form-text">Опишите цель теста и что будут проверять вопросы</p>
+                </div>
+            </div>
+
+            <!-- Настройки теста -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i class="fas fa-cog"></i> Настройки теста
+                </h3>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Лимит времени (минуты)</label>
+                        <input type="number"
+                               name="time_limit"
+                               class="form-control"
+                               value="{{ test.time_limit if test else 60 }}"
+                               min="1"
+                               max="180"
+                               placeholder="60">
+                        <p class="form-text">0 = без ограничения времени</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Максимальный балл</label>
+                        <input type="number"
+                               name="max_score"
+                               class="form-control"
+                               value="{{ test.max_score if test else 100 }}"
+                               min="1"
+                               max="1000"
+                               placeholder="100">
+                        <p class="form-text">Максимальный балл за тест</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопросы теста -->
+            <div class="questions-section">
+                <div class="questions-header">
+                    <h3 class="questions-title">
+                        <i class="fas fa-question-circle"></i> Вопросы теста
+                    </h3>
+                    <button type="button" class="add-question-btn" onclick="addQuestion()">
+                        <i class="fas fa-plus"></i> Добавить вопрос
+                    </button>
+                </div>
+
+                <div id="questions-container">
+                    {% if test and questions_with_answers %}
+                        {% for item in questions_with_answers %}
+                            <div class="question-card" data-question-index="{{ loop.index0 }}">
+                                <div class="question-header">
+                                    <span class="question-number">Вопрос {{ loop.index }}</span>
+                                    <button type="button" class="remove-question" onclick="removeQuestion(this)">
+                                        <i class="fas fa-trash"></i> Удалить вопрос
+                                    </button>
+                                </div>
+
+                                <select name="question_type_{{ loop.index0 }}"
+                                        class="question-type-select"
+                                        onchange="updateQuestionType(this, {{ loop.index0 }})">
+                                    <option value="single" {% if item.question.type == 'single' %}selected{% endif %}>Один правильный ответ</option>
+                                    <option value="multiple" {% if item.question.type == 'multiple' %}selected{% endif %}>Несколько правильных ответов</option>
+                                    <option value="text" {% if item.question.type == 'text' %}selected{% endif %}>Текстовый ответ</option>
+                                </select>
+
+                                <textarea name="question_text_{{ loop.index0 }}"
+                                          class="question-textarea"
+                                          placeholder="Введите текст вопроса..."
+                                          required>{{ item.question.text }}</textarea>
+
+                                <!-- Контейнер для ответов -->
+                                <div class="answers-container" id="answers-container-{{ loop.index0 }}"
+                                     style="display: {% if item.question.type == 'text' %}none{% else %}block{% endif %};">
+                                    <div class="answers-header">
+                                        <span class="answers-title">Варианты ответов</span>
+                                        <button type="button" class="add-answer" onclick="addAnswer({{ loop.index0 }})">
+                                            <i class="fas fa-plus"></i> Добавить ответ
+                                        </button>
+                                    </div>
+
+                                    <div id="answers-list-{{ loop.index0 }}">
+                                        {% for answer in item.answers %}
+                                            <div class="answer-item" data-answer-index="{{ loop.index0 }}">
+                                                <div class="answer-checkbox {% if answer.is_correct %}checked{% endif %}"
+                                                     onclick="toggleCorrect(this)">
+                                                    {% if answer.is_correct %}
+                                                        <i class="fas fa-check" style="font-size: 0.75rem;"></i>
+                                                    {% endif %}
+                                                    <input type="hidden"
+                                                           name="is_correct_{{ loop.index0 }}_{{ loop.index0 }}"
+                                                           value="{% if answer.is_correct %}true{% else %}false{% endif %}">
+                                                </div>
+                                                <input type="text"
+                                                       name="answer_text_{{ loop.parent.loop.index0 }}_{{ loop.index0 }}"
+                                                       class="answer-input"
+                                                       placeholder="Текст ответа..."
+                                                       value="{{ answer.text }}"
+                                                       required>
+                                                <button type="button" class="remove-answer" onclick="removeAnswer(this)">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <!-- Контейнер для текстового вопроса -->
+                                <div class="text-question-section" id="text-question-{{ loop.index0 }}"
+                                     style="display: {% if item.question.type == 'text' %}block{% else %}none{% endif %};">
+                                    <label class="correct-answer-label">Правильный ответ (опционально)</label>
+                                    <textarea name="correct_answer_text_{{ loop.index0 }}"
+                                              class="correct-answer-input"
+                                              placeholder="Пример правильного ответа...">
+                                        {% if item.answers and item.answers[0] %}
+                                            {{ item.answers[0].text }}
+                                        {% endif %}
+                                    </textarea>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="empty-state" id="no-questions-message"
+                     style="display: {% if not test or not questions_with_answers %}block{% else %}none{% endif %};">
+                    <i class="fas fa-question-circle fa-3x mb-3"></i>
+                    <h3>Нет вопросов</h3>
+                    <p>Добавьте вопросы, чтобы студенты могли пройти тест</p>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="form-actions">
+                <a href="{{ url_for('admin_tests') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Отмена
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Сохранить тест
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let questionCount = {{ questions_with_answers|length if test and questions_with_answers else 0 }};
+    let answerCounts = {};
+
+    // Инициализация счетчиков ответов для существующих вопросов
+    {% if test and questions_with_answers %}
+        {% for item in questions_with_answers %}
+            answerCounts[{{ loop.index0 }}] = {{ item.answers|length }};
+        {% endfor %}
+    {% endif %}
+
+    function addQuestion() {
+        const container = document.getElementById('questions-container');
+        const noQuestionsMessage = document.getElementById('no-questions-message');
+
+        // Скрываем сообщение "нет вопросов"
+        if (noQuestionsMessage) {
+            noQuestionsMessage.style.display = 'none';
+        }
+
+        const questionIndex = questionCount;
+        questionCount++;
+        answerCounts[questionIndex] = 0;
+
+        const questionHTML = `
+            <div class="question-card" data-question-index="${questionIndex}">
+                <div class="question-header">
+                    <span class="question-number">Вопрос ${questionCount}</span>
+                    <button type="button" class="remove-question" onclick="removeQuestion(this)">
+                        <i class="fas fa-trash"></i> Удалить вопрос
+                    </button>
+                </div>
+
+                <select name="question_type_${questionIndex}"
+                        class="question-type-select"
+                        onchange="updateQuestionType(this, ${questionIndex})">
+                    <option value="single">Один правильный ответ</option>
+                    <option value="multiple">Несколько правильных ответов</option>
+                    <option value="text">Текстовый ответ</option>
+                </select>
+
+                <textarea name="question_text_${questionIndex}"
+                          class="question-textarea"
+                          placeholder="Введите текст вопроса..."
+                          required></textarea>
+
+                <div class="answers-container" id="answers-container-${questionIndex}">
+                    <div class="answers-header">
+                        <span class="answers-title">Варианты ответов</span>
+                        <button type="button" class="add-answer" onclick="addAnswer(${questionIndex})">
+                            <i class="fas fa-plus"></i> Добавить ответ
+                        </button>
+                    </div>
+                    <div id="answers-list-${questionIndex}"></div>
+                </div>
+
+                <div class="text-question-section" id="text-question-${questionIndex}" style="display: none;">
+                    <label class="correct-answer-label">Правильный ответ (опционально)</label>
+                    <textarea name="correct_answer_text_${questionIndex}"
+                              class="correct-answer-input"
+                              placeholder="Пример правильного ответа..."></textarea>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', questionHTML);
+
+        // Добавляем первый ответ для нового вопроса
+        addAnswer(questionIndex);
+    }
+
+    function removeQuestion(button) {
+        const questionCard = button.closest('.question-card');
+        const questionIndex = questionCard.dataset.questionIndex;
+
+        questionCard.remove();
+
+        // Удаляем из счетчиков
+        delete answerCounts[questionIndex];
+
+        // Обновляем номера вопросов
+        updateQuestionNumbers();
+
+        // Показываем сообщение если нет вопросов
+        const container = document.getElementById('questions-container');
+        const noQuestionsMessage = document.getElementById('no-questions-message');
+
+        if (container.children.length === 0 && noQuestionsMessage) {
+            noQuestionsMessage.style.display = 'block';
+            questionCount = 0;
+        }
+    }
+
+    function updateQuestionNumbers() {
+        const questions = document.querySelectorAll('.question-card');
+        questions.forEach((card, index) => {
+            const numberSpan = card.querySelector('.question-number');
+            if (numberSpan) {
+                numberSpan.textContent = `Вопрос ${index + 1}`;
+            }
+            // Обновляем индексы
+            card.dataset.questionIndex = index;
+
+            // Обновляем имена полей
+            const oldIndex = card.dataset.originalIndex || card.dataset.questionIndex;
+
+            // Обновляем поля вопроса
+            const typeSelect = card.querySelector('[name^="question_type_"]');
+            const textTextarea = card.querySelector('[name^="question_text_"]');
+            const correctTextarea = card.querySelector('[name^="correct_answer_text_"]');
+
+            if (typeSelect) typeSelect.name = `question_type_${index}`;
+            if (textTextarea) textTextarea.name = `question_text_${index}`;
+            if (correctTextarea) correctTextarea.name = `correct_answer_text_${index}`;
+
+            // Обновляем поля ответов
+            const answerItems = card.querySelectorAll('.answer-item');
+            answerItems.forEach((answerItem, answerIndex) => {
+                const checkbox = answerItem.querySelector('.answer-checkbox');
+                const hiddenInput = answerItem.querySelector('input[type="hidden"]');
+                const textInput = answerItem.querySelector('.answer-input');
+
+                if (hiddenInput) hiddenInput.name = `is_correct_${index}_${answerIndex}`;
+                if (textInput) textInput.name = `answer_text_${index}_${answerIndex}`;
+            });
+
+            card.dataset.originalIndex = index;
+        });
+
+        // Обновляем глобальный счетчик
+        questionCount = questions.length;
+    }
+
+    function addAnswer(questionIndex) {
+        const answersList = document.getElementById(`answers-list-${questionIndex}`);
+        if (!answersList) return;
+
+        const answerIndex = answerCounts[questionIndex] || 0;
+        answerCounts[questionIndex] = answerIndex + 1;
+
+        const answerHTML = `
+            <div class="answer-item" data-answer-index="${answerIndex}">
+                <div class="answer-checkbox" onclick="toggleCorrect(this)">
+                    <input type="hidden" name="is_correct_${questionIndex}_${answerIndex}" value="false">
+                </div>
+                <input type="text"
+                       name="answer_text_${questionIndex}_${answerIndex}"
+                       class="answer-input"
+                       placeholder="Текст ответа..."
+                       required>
+                <button type="button" class="remove-answer" onclick="removeAnswer(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        answersList.insertAdjacentHTML('beforeend', answerHTML);
+    }
+
+    function removeAnswer(button) {
+        const answerItem = button.closest('.answer-item');
+        answerItem.remove();
+
+        // Обновляем индексы ответов в этом вопросе
+        const questionCard = answerItem.closest('.question-card');
+        const questionIndex = questionCard.dataset.questionIndex;
+        const answersList = document.getElementById(`answers-list-${questionIndex}`);
+
+        if (answersList) {
+            const answerItems = answersList.querySelectorAll('.answer-item');
+            answerItems.forEach((item, index) => {
+                const hiddenInput = item.querySelector('input[type="hidden"]');
+                const textInput = item.querySelector('.answer-input');
+
+                if (hiddenInput) hiddenInput.name = `is_correct_${questionIndex}_${index}`;
+                if (textInput) textInput.name = `answer_text_${questionIndex}_${index}`;
+            });
+
+            answerCounts[questionIndex] = answerItems.length;
+        }
+    }
+
+    function toggleCorrect(checkbox) {
+        const hiddenInput = checkbox.querySelector('input[type="hidden"]');
+        const isChecked = hiddenInput.value === 'true';
+
+        if (isChecked) {
+            checkbox.classList.remove('checked');
+            hiddenInput.value = 'false';
+            checkbox.innerHTML = '<input type="hidden" name="' + hiddenInput.name + '" value="false">';
+        } else {
+            checkbox.classList.add('checked');
+            hiddenInput.value = 'true';
+            checkbox.innerHTML = '<i class="fas fa-check" style="font-size: 0.75rem;"></i><input type="hidden" name="' + hiddenInput.name + '" value="true">';
+        }
+    }
+
+    function updateQuestionType(select, questionIndex) {
+        const answersContainer = document.getElementById(`answers-container-${questionIndex}`);
+        const textQuestionContainer = document.getElementById(`text-question-${questionIndex}`);
+
+        if (select.value === 'text') {
+            if (answersContainer) answersContainer.style.display = 'none';
+            if (textQuestionContainer) textQuestionContainer.style.display = 'block';
+        } else {
+            if (answersContainer) answersContainer.style.display = 'block';
+            if (textQuestionContainer) textQuestionContainer.style.display = 'none';
+
+            // Если нет ответов, добавляем один
+            const answersList = document.getElementById(`answers-list-${questionIndex}`);
+            if (answersList && answersList.children.length === 0) {
+                addAnswer(questionIndex);
+            }
+        }
+    }
+
+    function loadCourseModules(courseId) {
+        const moduleSelect = document.getElementById('module-select');
+
+        if (!courseId) {
+            moduleSelect.innerHTML = '<option value="">Выберите модуль</option>';
+            return;
+        }
+
+        fetch(`/api/admin/get_modules?course_id=${courseId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    moduleSelect.innerHTML = '<option value="">Выберите модуль</option>';
+                    data.modules.forEach(module => {
+                        const option = document.createElement('option');
+                        option.value = module.id;
+                        option.textContent = module.title;
+                        moduleSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки модулей:', error);
+            });
+    }
+
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        // Загрузка модулей если выбран курс
+        const courseSelect = document.getElementById('course-select');
+        if (courseSelect && courseSelect.value) {
+            loadCourseModules(courseSelect.value);
+        }
+
+        // Если нет вопросов при редактировании, добавляем один
+        {% if not test or not questions_with_answers %}
+            addQuestion();
+        {% endif %}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,445 @@
+{% extends "student/base.html" %}
+
+{% block title %}Результаты теста - {{ test.title }} - EduSpace{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Навигация -->
+    <div class="mb-6">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li>
+                    <div class="flex items-center">
+                        <a href="{{ url_for('student_tests') }}" class="text-indigo-600 hover:text-indigo-800">
+                            Мои тесты
+                        </a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <a href="{{ url_for('student_test_detail', test_id=test.id) }}" class="ml-1 text-indigo-600 hover:text-indigo-800 md:ml-2">
+                            {{ test.title }}
+                        </a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="ml-1 text-gray-500 md:ml-2">Результаты</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Основная информация о результате -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
+            <h1 class="text-2xl font-bold text-gray-900">Результаты теста: {{ test.title }}</h1>
+            <p class="mt-1 text-gray-600">{{ test.description }}</p>
+        </div>
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Дата завершения</div>
+<div class="text-lg font-bold text-gray-900">
+    {% if test_result.finished_at %}
+        {% if test_result.finished_at is string %}
+            {{ test_result.finished_at[:10] }} {{ test_result.finished_at[11:16] }}
+        {% else %}
+            {{ test_result.finished_at.strftime('%Y-%m-%d %H:%M') }}
+        {% endif %}
+    {% else %}
+        Не завершен
+    {% endif %}
+</div>
+                </div>
+
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Время</div>
+                    <div class="text-lg font-bold text-gray-800">
+                        {% if test_result.duration_sec %}
+                            {{ (test_result.duration_sec // 60) }} мин {{ test_result.duration_sec % 60 }} сек
+                        {% else %}
+                            0 мин 0 сек
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if course %}
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Курс</div>
+                    <div class="text-lg font-bold text-gray-800">{{ course.title }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Основной результат -->
+            <div class="text-center mb-6">
+                <div class="inline-block bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 shadow-lg">
+                    <div class="text-5xl font-bold text-gray-900 mb-2 number-display">
+                        {{ "%.2f"|format(test_result.score) }}/{{ test_result.max_score|int }}
+                    </div>
+
+                    <div class="text-2xl font-bold
+                        {% if test_result.percentage >= 80 %}text-green-600
+                        {% elif test_result.percentage >= 60 %}text-yellow-600
+                        {% else %}text-red-600{% endif %} mb-4">
+                        {{ test_result.percentage|round(1) }}%
+                    </div>
+
+                    <!-- Прогресс-бар -->
+                    <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                        <div class="h-4 rounded-full
+                            {% if test_result.percentage >= 80 %}bg-green-500
+                            {% elif test_result.percentage >= 60 %}bg-yellow-500
+                            {% else %}bg-red-500{% endif %}"
+                            style="width: {{ test_result.percentage|round|int }}%">
+                        </div>
+                    </div>
+
+                    <!-- Статус -->
+                    <div class="text-lg font-semibold
+                        {% if test_result.percentage >= 80 %}text-green-700
+                        {% elif test_result.percentage >= 60 %}text-yellow-700
+                        {% else %}text-red-700{% endif %}">
+                        {% if test_result.percentage >= 80 %}
+                            Отлично
+                        {% elif test_result.percentage >= 60 %}
+                            Удовлетворительно
+                        {% else %}
+                            Неудовлетворительно
+                        {% endif %}
+                    </div>
+
+                    <!-- Статистика -->
+                    <div class="mt-4 text-sm text-gray-600">
+                        <span class="font-medium">{{ test_result.correct_answers }} из {{ test_result.total_autogradable_questions|default(test_result.total_questions) }}</span> правильных ответов
+                        {% if test_result.total_all_questions > test_result.total_autogradable_questions %}
+                            <br><small class="text-gray-500">
+                                +{{ test_result.total_all_questions - test_result.total_autogradable_questions }} открытых вопросов (требуют проверки)
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Детальные результаты по вопросам -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+        <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+            <h2 class="text-xl font-bold text-gray-900">Подробные результаты</h2>
+            <p class="mt-1 text-sm text-gray-600">Правильные ответы отмечены зелёным цветом, неправильные - красным</p>
+        </div>
+
+        <div class="divide-y divide-gray-200" id="questionsContainer">
+            {% for question in test.questions %}
+            {% set answers = question.answers if question.answers is defined else [] %}
+            {% set user_answer = user_answers.get(question.id) %}
+
+            <!-- Определяем правильность ответа для этого вопроса -->
+            {% set question_points = question.points|default(1) %}
+            {% set is_correct_question = false %}
+            {% set is_autogradable = question.type in ['single', 'multiple'] %}
+
+            {% if user_answer %}
+                {% set is_correct_question = user_answer.is_correct %}
+            {% endif %}
+
+            <!-- Для открытых вопросов всегда показываем как требующие проверки -->
+            {% if question.type in ['text', 'open'] %}
+                {% set is_correct_question = false %}
+                {% set is_autogradable = false %}
+            {% endif %}
+
+            <div class="p-6 {% if is_correct_question %}bg-green-50{% elif is_autogradable %}bg-red-50{% else %}bg-yellow-50{% endif %} question-item" data-question-id="{{ question.id }}">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">
+                            Вопрос {{ loop.index }}.
+                            {% if question.text and question.text|length > 0 %}
+                                {{ question.text }}
+                            {% else %}
+                                Текст вопроса отсутствует
+                            {% endif %}
+                        </h3>
+
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <!-- Статус ответа -->
+                            {% if is_correct_question %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Правильно
+                            </span>
+                            {% elif is_autogradable %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                                Неправильно
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Требует проверки
+                            </span>
+                            {% endif %}
+
+                            <!-- Тип вопроса -->
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if question.type == 'single' %}bg-blue-100 text-blue-800
+                                {% elif question.type == 'multiple' %}bg-purple-100 text-purple-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {% if question.type == 'single' %}
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <circle cx="10" cy="10" r="3"/>
+                                </svg>
+                                Один правильный ответ
+                                {% elif question.type == 'multiple' %}
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                                </svg>
+                                Несколько правильных ответов
+                                {% else %}
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"/>
+                                </svg>
+                                Открытый вопрос
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Баллы за вопрос -->
+                    <div class="text-right ml-4">
+                        <div class="text-sm text-gray-500">Баллы</div>
+                        <div class="text-2xl font-bold
+                            {% if is_correct_question %}text-green-600
+                            {% elif not is_autogradable %}text-yellow-600
+                            {% else %}text-red-600{% endif %} number-display">
+                            {% if is_correct_question %}
+                                +{{ question_points|int }}
+                            {% elif not is_autogradable %}
+                                0/{{ question_points|int }}
+                            {% else %}
+                                0/{{ question_points|int }}
+                            {% endif %}
+                        </div>
+                        {% if not is_autogradable %}
+                        <div class="text-xs text-yellow-600 mt-1">требует проверки</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Ответы -->
+                <div class="mt-6">
+                    {% if question.type in ['single', 'multiple'] and answers %}
+                        <div class="space-y-3">
+                            {% for answer in answers %}
+                            {% if answer.text and answer.text|length > 0 %}
+                                <!-- Определяем правильность ответа -->
+                                {% set is_correct_answer = answer.is_correct %}
+
+                                <!-- Определяем, выбрал ли пользователь этот ответ -->
+                                {% set is_user_selected = false %}
+                                {% if user_answer and user_answer.selected_ids %}
+                                    {% set answer_id_str = answer.id|string %}
+                                    {% set user_selected_ids = user_answer.selected_ids|map('string')|list %}
+                                    {% set is_user_selected = answer_id_str in user_selected_ids %}
+                                {% endif %}
+
+                                <div class="flex items-start p-4 rounded-lg border-2
+                                    {% if is_correct_answer and is_user_selected %}bg-green-100 border-green-500
+                                    {% elif is_correct_answer and not is_user_selected %}bg-green-50 border-green-300
+                                    {% elif not is_correct_answer and is_user_selected %}bg-red-100 border-red-500
+                                    {% else %}bg-gray-50 border-gray-200{% endif %}">
+
+                                    <!-- Маркер выбора -->
+                                    <div class="flex items-center h-6 mr-3 flex-shrink-0">
+                                        {% if question.type == 'single' %}
+                                            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center
+                                                {% if is_user_selected or (is_correct_answer and not is_user_selected) %}
+                                                    {% if is_correct_answer %}border-green-600 bg-green-600
+                                                    {% else %}border-red-600 bg-red-600{% endif %}
+                                                {% else %}border-gray-300{% endif %}">
+                                                {% if is_user_selected or (is_correct_answer and not is_user_selected) %}
+                                                <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <circle cx="10" cy="10" r="4"/>
+                                                </svg>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <div class="w-5 h-5 border-2 rounded flex items-center justify-center
+                                                {% if is_user_selected or (is_correct_answer and not is_user_selected) %}
+                                                    {% if is_correct_answer %}border-green-600 bg-green-600
+                                                    {% else %}border-red-600 bg-red-600{% endif %}
+                                                {% else %}border-gray-300{% endif %}">
+                                                {% if is_user_selected or (is_correct_answer and not is_user_selected) %}
+                                                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                </svg>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Текст ответа -->
+                                    <div class="flex-1">
+                                        <div class="flex items-start justify-between">
+                                            <label class="font-medium text-sm
+                                                {% if is_correct_answer and is_user_selected %}text-green-800
+                                                {% elif is_correct_answer and not is_user_selected %}text-green-700
+                                                {% elif not is_correct_answer and is_user_selected %}text-red-800
+                                                {% else %}text-gray-700{% endif %}">
+                                                {{ answer.text }}
+                                            </label>
+
+                                            <!-- Статус ответа -->
+                                            {% if is_correct_answer and is_user_selected %}
+                                            <div class="ml-2 flex-shrink-0">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Верный ваш выбор
+                                                </span>
+                                            </div>
+                                            {% elif is_correct_answer and not is_user_selected %}
+                                            <div class="ml-2 flex-shrink-0">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Верный ответ
+                                                </span>
+                                            </div>
+                                            {% elif not is_correct_answer and is_user_selected %}
+                                            <div class="ml-2 flex-shrink-0">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                                    </svg>
+                                                    Ваш выбор (неверно)
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Открытый вопрос -->
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Ваш ответ:</h4>
+                                <div class="p-4 bg-gray-50 rounded-lg border border-gray-300">
+                                    <p class="text-gray-800">
+                                        {% if user_answer and user_answer.text_answer and user_answer.text_answer|length > 0 %}
+                                            {{ user_answer.text_answer }}
+                                        {% else %}
+                                            <span class="text-gray-400">Ответ не предоставлен</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span class="text-sm text-yellow-700">
+                                        Открытый вопрос будет проверен преподавателем отдельно.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Навигация и кнопки -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <div class="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ url_for('student_test_detail', test_id=test.id) }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Назад к тесту
+                </a>
+
+                {% if test_info and test_info.can_start %}
+                <a href="{{ url_for('start_test', test_id=test.id) }}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                    Пройти тест снова
+                </a>
+                {% endif %}
+
+                <button onclick="printResults()"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Печать
+                </button>
+            </div>
+
+            <div class="flex gap-3">
+                <a href="{{ url_for('student_tests') }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    К списку тестов
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.question-item {
+    transition: all 0.3s ease;
+}
+
+.question-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.number-display {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+</style>
+
+<script>
+function printResults() {
+    window.print();
+}
+</script>
+{% endblock %}

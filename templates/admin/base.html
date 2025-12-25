@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Админ-панель{% endblock %} — EduSpace</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #7c3aed;
+            --accent-color: #8b5cf6;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Admin Container */
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 2px 0 12px rgba(79, 70, 229, 0.08);
+            padding: 1.5rem 1rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-title {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .sidebar-menu a:hover {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
+            color: var(--primary-color);
+            border-color: rgba(79, 70, 229, 0.1);
+            transform: translateX(4px);
+        }
+
+        .sidebar-menu a.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .sidebar-menu i {
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 1.5rem 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 2rem;
+            background: var(--light-bg);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .page-title {
+            font-weight: 700;
+            font-size: 1.875rem;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .logout-btn {
+            color: var(--danger-color);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+
+        .logout-btn:hover {
+            color: #dc2626;
+            background: rgba(239, 68, 68, 0.05);
+            border-color: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Content Area */
+        .content-area {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Flash Messages */
+        .flash-messages {
+            margin-bottom: 1.5rem;
+        }
+
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert i {
+            font-size: 1.25rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: var(--success-color);
+            color: #047857;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: var(--danger-color);
+            color: #b91c1c;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--warning-color);
+            color: #b45309;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-left-color: var(--info-color);
+            color: #1d4ed8;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: white;
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.05);
+            border-color: var(--danger-color);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .slide-in {
+            animation: slideIn 0.4s ease-out forwards;
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+
+            .main-content {
+                margin-left: 240px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 1rem;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .admin-container {
+                flex-direction: column;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+        }
+
+        .badge-primary {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+            color: var(--primary-color);
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th {
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .admin-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar fade-in">
+            <div class="sidebar-header">
+                <h1 class="sidebar-title">
+                    <i class="fas fa-cogs"></i> Админ-панель
+                </h1>
+                <p class="sidebar-subtitle">Образовательная платформа EduSpace</p>
+            </div>
+
+            <nav>
+                <ul class="sidebar-menu">
+                    <!-- Дашборд -->
+                    <li>
+                        <a href="{{ url_for('admin_dashboard') }}"
+                           class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Дашборд</span>
+                        </a>
+                    </li>
+
+                    {% if session.get('user_role') == 'admin' %}
+                        <!-- Пользователи -->
+                        <li>
+                            <a href="{{ url_for('admin_users') }}"
+                               class="{% if request.endpoint == 'admin_users' %}active{% endif %}">
+                                <i class="fas fa-users"></i>
+                                <span>Пользователи</span>
+                            </a>
+                        </li>
+
+                        <!-- Курсы -->
+                        <li>
+                            <a href="{{ url_for('admin_courses') }}"
+                               class="{% if request.endpoint == 'admin_courses' %}active{% endif %}">
+                                <i class="fas fa-book"></i>
+                                <span>Курсы</span>
+                            </a>
+                        </li>
+
+                        <!-- Тесты -->
+                        <li>
+                            <a href="{{ url_for('admin_tests') }}"
+                               class="{% if request.endpoint == 'admin_tests' %}active{% endif %}">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>Тесты</span>
+                            </a>
+                        </li>
+                        <li>
+    <a href="{{ url_for('admin_test_results') }}"
+       class="{% if request.endpoint == 'admin_test_results' %}active{% endif %}">
+        <i class="fas fa-poll"></i>
+        <span>Результаты тестов</span>
+    </a>
+</li>
+
+<!-- Попытки тестов -->
+<li>
+    <a href="{{ url_for('admin_test_attempts') }}"
+       class="{% if request.endpoint == 'admin_test_attempts' %}active{% endif %}">
+        <i class="fas fa-redo"></i>
+        <span>Попытки тестов</span>
+    </a>
+</li>
+                        <!-- Модули -->
+                        <li>
+                            <a href="{{ url_for('admin_modules') }}"
+                               class="{% if request.endpoint == 'admin_modules' %}active{% endif %}">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Модули</span>
+                            </a>
+                        </li>
+
+                        <!-- Аналитика -->
+                        <li>
+                            <a href="{{ url_for('admin_analytics') }}"
+                               class="{% if request.endpoint == 'admin_analytics' %}active{% endif %}">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Аналитика</span>
+                            </a>
+                        </li>
+
+                        <!-- Прогресс -->
+                        <li>
+                            <a href="{{ url_for('admin_progress') }}"
+                               class="{% if request.endpoint == 'admin_progress' %}active{% endif %}">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Прогресс</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <div class="sidebar-divider"></div>
+
+                    <!-- Переключение режимов -->
+                    <li>
+                        <a href="{{ url_for('student_dashboard') }}" class="card-hover">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Режим студента</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{{ url_for('teacher_dashboard') }}" class="card-hover">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Режим преподавателя</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header card-hover">
+                <h1 class="page-title">{% block page_title %}Панель администратора{% endblock %}</h1>
+
+                <div class="user-info">
+                    <span class="user-name">{{ session.get('user_name') }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn" title="Выйти">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} fade-in">
+                                {% if category == 'success' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif category == 'danger' %}
+                                    <i class="fas fa-exclamation-circle"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle"></i>
+                                {% endif %}
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Content -->
+            <div class="content-area card-hover">
+                {% block content %}{% endblock %}
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                © 2025 Образовательная платформа EduSpace
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Автоматическое скрытие флеш-сообщений
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+
+        // Активная навигация
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.sidebar-menu a');
+
+            navLinks.forEach(link => {
+                const linkPath = link.getAttribute('href');
+                if (currentPath.includes(linkPath.replace(/^.*\/\/[^\/]+/, ''))) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,622 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Управление тестами — EduSpace{% endblock %}
+{% block page_title %}Управление тестами{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Table Styles */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .section-title {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--text-primary);
+        font-size: 1.6rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .data-table th {
+        background: #f8fafc;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        padding: 1rem;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-table th:hover {
+        background: #f1f5f9;
+    }
+
+    .data-table th.sort-asc::after {
+        content: " ↑";
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .data-table th.sort-desc::after {
+        content: " ↓";
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    .data-table tr:hover {
+        background: #f8fafc;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+        background: #f8fafc;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        padding: 0.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border: 1px solid transparent;
+    }
+
+    .btn-edit {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info-color);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-edit:hover {
+        background: rgba(59, 130, 246, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-delete {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-delete:hover {
+        background: rgba(239, 68, 68, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-questions {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+        border-color: rgba(139, 92, 246, 0.2);
+    }
+
+    .btn-questions:hover {
+        background: rgba(139, 92, 246, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+    }
+
+    /* Filters */
+    .filters-container {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .form-control {
+        padding: 0.625rem 0.75rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        background: white;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        min-width: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pagination-btn:hover {
+        background: #f8fafc;
+        color: var(--primary-color);
+        border-color: rgba(79, 70, 229, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        font-weight: 600;
+        border-color: transparent;
+    }
+
+    .pagination-btn.disabled {
+        background: #f8fafc;
+        color: #cbd5e1;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .pagination-btn.disabled:hover {
+        transform: none;
+        background: #f8fafc;
+        border-color: var(--border-color);
+    }
+
+    /* Stats summary */
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        background: white;
+        padding: 1.25rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-number {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* Email link */
+    .email-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .email-link:hover {
+        color: var(--secondary-color);
+        text-decoration: underline;
+    }
+
+    /* Badges */
+    .time-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .score-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .filters-form {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-summary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .data-table {
+            font-size: 0.875rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .btn-icon {
+            width: 100%;
+            height: 2.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="section-header">
+        <h2 class="section-title">Управление тестами</h2>
+<a href="{{ url_for('admin_create_test_standalone') }}" class="btn btn-primary">
+    <i class="fas fa-plus-circle mr-2"></i> Создать тест
+</a>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="filters-container">
+        <form method="get" class="filters-form">
+            <div class="form-group">
+                <label class="form-label">Поиск</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Название теста..."
+                       value="{{ search }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Курс</label>
+                <select name="course_id" class="form-control" onchange="loadModules(this.value)">
+                    <option value="">Все курсы</option>
+                    {% for course in courses %}
+                        <option value="{{ course.id }}" {% if course.id|string == course_id|string %}selected{% endif %}>
+                            {{ course.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Модуль</label>
+                <select name="module_id" class="form-control" id="module-select">
+                    <option value="">Все модули</option>
+                    {% for module in modules %}
+                        <option value="{{ module.id }}" {% if module.id|string == module_id|string %}selected{% endif %}>
+                            {{ module.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search mr-2"></i> Применить фильтры
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Сводная статистика -->
+    <div class="stats-summary">
+        <div class="stat-item">
+            <div class="stat-number">{{ total_tests }}</div>
+            <div class="stat-label">Всего тестов</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ courses|length }}</div>
+            <div class="stat-label">Курсов</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ modules|length }}</div>
+            <div class="stat-label">Модулей</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ page }}/{{ total_pages }}</div>
+            <div class="stat-label">Страница</div>
+        </div>
+    </div>
+
+    <!-- Таблица тестов -->
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Описание</th>
+                    <th>Курс/Модуль</th>
+                    <th>Ограничения</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in tests %}
+                    <tr>
+                        <td>
+                            <span class="font-mono">{{ test.id }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ test.title }}</strong>
+                        </td>
+                        <td>
+                            {% if test.description %}
+                                {{ test.description[:80] }}{% if test.description|length > 80 %}...{% endif %}
+                            {% else %}
+                                <span class="text-gray-500">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="text-sm">
+                                {% set course_found = none %}
+                                {% set module_found = none %}
+
+                                {% for course in courses %}
+                                    {% if course.id == test.course_id %}
+                                        {% set course_found = course %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% for module in modules %}
+                                    {% if module.id == test.module_id %}
+                                        {% set module_found = module %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if course_found %}
+                                    <div><i class="fas fa-book mr-1"></i> {{ course_found.title }}</div>
+                                {% endif %}
+                                {% if module_found %}
+                                    <div><i class="fas fa-layer-group mr-1"></i> {{ module_found.title }}</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-col gap-1">
+                                {% if test.time_limit %}
+                                    <span class="time-badge">
+                                        <i class="fas fa-clock mr-1"></i> {{ test.time_limit }} мин
+                                    </span>
+                                {% endif %}
+                                {% if test.max_score %}
+                                    <span class="score-badge">
+                                        <i class="fas fa-star mr-1"></i> {{ test.max_score }} баллов
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('admin_edit_test', test_id=test.id) }}"
+                                   class="btn-icon btn-edit"
+                                   title="Редактировать">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <a href="{{ url_for('admin_questions', test_id=test.id) }}"
+                                   class="btn-icon btn-questions"
+                                   title="Вопросы теста">
+                                    <i class="fas fa-question-circle"></i>
+                                </a>
+
+                                <form method="post"
+                                      action="{{ url_for('admin_delete_test', test_id=test.id) }}"
+                                      onsubmit="return confirm('Вы уверены, что хотите удалить тест \"{{ test.title }}\"?');"
+                                      style="display: inline;">
+                                    <button type="submit"
+                                            class="btn-icon btn-delete"
+                                            title="Удалить">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="fas fa-clipboard-check fa-3x mb-4"></i>
+                                <h3>Тесты не найдены</h3>
+                                <p class="mb-4">Измените параметры фильтрации</p>
+                                <a href="{{ url_for('admin_courses') }}" class="btn btn-primary">
+                                    <i class="fas fa-book mr-2"></i> Перейти к курсам
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Пагинация -->
+    {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('admin_tests', page=page-1, search=search, course_id=course_id, module_id=module_id) }}"
+                   class="pagination-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            {% else %}
+                <span class="pagination-btn disabled">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            {% endif %}
+
+            {% for p in range(1, total_pages + 1) %}
+                {% if p >= page - 2 and p <= page + 2 %}
+                    <a href="{{ url_for('admin_tests', page=p, search=search, course_id=course_id, module_id=module_id) }}"
+                       class="pagination-btn {% if p == page %}active{% endif %}">
+                        {{ p }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page < total_pages %}
+                <a href="{{ url_for('admin_tests', page=page+1, search=search, course_id=course_id, module_id=module_id) }}"
+                   class="pagination-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="pagination-btn disabled">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function loadModules(courseId) {
+        const moduleSelect = document.getElementById('module-select');
+
+        if (!courseId) {
+            moduleSelect.innerHTML = '<option value="">Все модули</option>';
+            return;
+        }
+
+        fetch(`/api/admin/get_modules?course_id=${courseId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    moduleSelect.innerHTML = '<option value="">Все модули</option>';
+                    data.modules.forEach(module => {
+                        const option = document.createElement('option');
+                        option.value = module.id;
+                        option.textContent = module.title;
+                        moduleSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки модулей:', error);
+            });
+    }
+</script>
+{% endblock %}

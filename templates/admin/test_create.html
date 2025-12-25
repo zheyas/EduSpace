@@ -1,0 +1,568 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Создание теста — EduSpace{% endblock %}
+{% block page_title %}Создание нового теста{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .module-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+    }
+
+    .module-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .module-meta {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .form-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .form-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-subtitle {
+        color: #64748b;
+        font-size: 1rem;
+    }
+
+    .module-selector {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+    }
+
+    .selector-title {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .selector-options {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .selector-option {
+        flex: 1;
+        padding: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+
+    .selector-option:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+    }
+
+    .selector-option.active {
+        border-color: #4f46e5;
+        background: rgba(79, 70, 229, 0.05);
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+    }
+
+    .option-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #64748b;
+    }
+
+    .selector-option.active .option-icon {
+        color: #4f46e5;
+    }
+
+    .option-title {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.25rem;
+    }
+
+    .option-desc {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .module-dropdown {
+        display: none;
+        margin-top: 1rem;
+    }
+
+    .module-dropdown.show {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .selector-options {
+            flex-direction: column;
+        }
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-label.required:after {
+        content: ' *';
+        color: #ef4444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23475569' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px;
+        padding-right: 2.5rem;
+    }
+
+    .form-textarea {
+        min-height: 150px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .form-text {
+        display: block;
+        margin-top: 0.5rem;
+        color: #64748b;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 1rem;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #475569;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Заголовок модуля -->
+    <div class="module-header">
+        <div class="module-title">
+            <i class="fas fa-layer-group"></i>
+            {{ module.title }}
+        </div>
+        <div class="module-meta">
+            <div class="meta-item">
+                <i class="fas fa-hashtag"></i>
+                <span>ID: {{ module.id }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-book"></i>
+                <span>Курс: {{ course.title if course else 'Неизвестно' }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-sort-numeric-down"></i>
+                <span>Порядок: #{{ module.module_order }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма создания теста -->
+    <div class="form-container">
+        <div class="form-header">
+            <div class="form-icon">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h1 class="form-title">Создание нового теста</h1>
+            <p class="form-subtitle">Добавьте тест для проверки знаний студентов</p>
+        </div>
+
+        <!-- Селектор модуля -->
+        <div class="module-selector">
+            <div class="selector-title">
+                <i class="fas fa-cube"></i>
+                Выберите модуль для теста
+            </div>
+
+            <div class="selector-options">
+                <div class="selector-option active" id="currentModuleOption">
+                    <div class="option-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="option-title">Текущий модуль</div>
+                    <div class="option-desc">{{ module.title }}</div>
+                </div>
+
+                <div class="selector-option" id="selectModuleOption">
+                    <div class="option-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div class="option-title">Выбрать другой модуль</div>
+                    <div class="option-desc">Из существующих модулей курсов</div>
+                </div>
+            </div>
+
+            <!-- Выпадающий список модулей -->
+            <div class="module-dropdown" id="moduleDropdown">
+                <div class="form-group">
+                    <label class="form-label required">Выберите модуль</label>
+                    <select name="selected_module_id" class="form-control form-select" id="moduleSelect">
+                        <option value="none">Выберите модуль...</option>
+                        {% for course_item in courses %}
+                            {% set modules_list = course_modules.get(course_item.id, []) %}
+                            {% if modules_list %}
+                                <optgroup label="{{ course_item.title }}">
+                                    {% for mod in modules_list %}
+                                        <option value="{{ mod.id }}" {% if mod.id == module.id %}selected{% endif %}>
+                                            #{{ mod.module_order }} - {{ mod.title }}
+                                            {% if mod.id == module.id %}(текущий){% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </optgroup>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">
+                        Выберите модуль из списка существующих модулей
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" id="testForm">
+            <!-- Название теста -->
+            <div class="form-group">
+                <label class="form-label required">Название теста</label>
+                <input type="text"
+                       name="title"
+                       class="form-control"
+                       placeholder="Например: 'Проверочный тест по основам Python'"
+                       required
+                       id="testTitle">
+                <div class="form-hint">
+                    <i class="fas fa-lightbulb"></i>
+                    Используйте понятные и описательные названия
+                </div>
+            </div>
+
+            <!-- Описание теста -->
+            <div class="form-group">
+                <label class="form-label">Описание теста</label>
+                <textarea name="description"
+                          class="form-control form-textarea"
+                          id="testDescription"
+                          placeholder="Опишите, что проверяет этот тест, какие темы охватывает..."
+                          rows="4"></textarea>
+                <div class="form-text">
+                    Это описание будет видно студентам перед началом теста
+                </div>
+            </div>
+
+            <!-- Настройки теста -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label required">Ограничение по времени (минут)</label>
+                    <input type="number"
+                           name="time_limit"
+                           class="form-control"
+                           min="0"
+                           value="60"
+                           placeholder="0 = без ограничения"
+                           required>
+                    <div class="form-text">
+                        0 = без ограничения времени
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Максимальный балл</label>
+                    <input type="number"
+                           name="max_score"
+                           class="form-control"
+                           min="1"
+                           max="1000"
+                           value="100"
+                           required>
+                    <div class="form-text">
+                        Максимальное количество баллов за тест
+                    </div>
+                </div>
+            </div>
+
+            <!-- Скрытые поля -->
+            <input type="hidden" name="module_id" value="{{ module.id }}">
+
+            <!-- В разделе form-actions замените кнопку "Вернуться к модулю" -->
+<div class="form-actions">
+    {% if module %}
+        <a href="{{ url_for('admin_view_module', module_id=module.id) }}"
+           class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i> Вернуться к модулю
+        </a>
+    {% else %}
+        <a href="{{ url_for('admin_tests') }}"
+           class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i> Вернуться к тестам
+        </a>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">
+        <i class="fas fa-plus-circle mr-2"></i> Создать тест
+    </button>
+</div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Элементы для выбора модуля
+    const currentModuleOption = document.getElementById('currentModuleOption');
+    const selectModuleOption = document.getElementById('selectModuleOption');
+    const moduleDropdown = document.getElementById('moduleDropdown');
+    const moduleSelect = document.getElementById('moduleSelect');
+    const testForm = document.getElementById('testForm');
+    const testTitle = document.getElementById('testTitle');
+    const testDescription = document.getElementById('testDescription');
+
+    // Обработка выбора модуля
+    function selectModuleOption(option) {
+        // Сбросить все опции
+        currentModuleOption.classList.remove('active');
+        selectModuleOption.classList.remove('active');
+
+        // Скрыть/показать выпадающий список
+        if (option === selectModuleOption) {
+            moduleDropdown.classList.add('show');
+        } else {
+            moduleDropdown.classList.remove('show');
+            moduleSelect.value = '{{ module.id }}'; // Устанавливаем текущий модуль
+        }
+
+        // Активировать выбранную опцию
+        option.classList.add('active');
+    }
+
+    // Обработчики кликов на опции
+    currentModuleOption.addEventListener('click', () => selectModuleOption(currentModuleOption));
+    selectModuleOption.addEventListener('click', () => selectModuleOption(selectModuleOption));
+
+    // Обработчик изменения выбранного модуля
+    moduleSelect.addEventListener('change', function() {
+        if (this.value === 'none') {
+            selectModuleOption(currentModuleOption);
+        }
+    });
+
+    // Валидация формы
+    testForm.addEventListener('submit', function(e) {
+        let isValid = true;
+        const errors = [];
+
+        // Проверка названия теста
+        if (!testTitle.value.trim()) {
+            errors.push('Введите название теста');
+            isValid = false;
+        }
+
+        // Проверка выбора модуля
+        if (moduleDropdown.classList.contains('show') && moduleSelect.value === 'none') {
+            errors.push('Выберите модуль для теста');
+            isValid = false;
+        }
+
+        // Проверка времени
+        const timeLimit = document.querySelector('input[name="time_limit"]');
+        if (timeLimit.value < 0) {
+            errors.push('Время не может быть отрицательным');
+            isValid = false;
+        }
+
+        // Проверка максимального балла
+        const maxScore = document.querySelector('input[name="max_score"]');
+        if (!maxScore.value || maxScore.value < 1) {
+            errors.push('Укажите корректный максимальный балл (минимум 1)');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Пожалуйста, исправьте ошибки:\n' + errors.join('\n'));
+            return false;
+        }
+
+        return true;
+    });
+
+    // Анимация при фокусе
+    const formControls = document.querySelectorAll('.form-control');
+    formControls.forEach(control => {
+        control.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+
+        control.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+
+    // Примеры названий тестов
+    const testExamples = [
+        'Проверочный тест по основам',
+        'Итоговый тест по теме',
+        'Контрольный тест по модулю',
+        'Тест для самопроверки'
+    ];
+
+    // Установка примера названия
+    testTitle.placeholder = `${testExamples[Math.floor(Math.random() * testExamples.length)]}...`;
+});
+</script>
+{% endblock %}

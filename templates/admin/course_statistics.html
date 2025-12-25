@@ -1,0 +1,254 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Статистика курса — EduSpace{% endblock %}
+{% block page_title %}Статистика курса: {{ statistics.course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .stat-value {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-trend {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    .trend-up {
+        color: #2ecc71;
+    }
+
+    .trend-down {
+        color: #e74c3c;
+    }
+
+    .chart-container {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .top-students {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 1.5rem;
+    }
+
+    .students-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .student-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(26, 26, 26, 0.5);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 121, 254, 0.2);
+    }
+
+    .student-rank {
+        background: rgba(255, 121, 254, 0.2);
+        color: var(--primary-color);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Orbitron', monospace;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .student-info {
+        flex: 1;
+    }
+
+    .student-name {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .student-email {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+    }
+
+    .student-score {
+        text-align: right;
+    }
+
+    .score-value {
+        font-family: 'Orbitron', monospace;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .score-label {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+    }
+
+    .empty-stats {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(26, 26, 26, 0.3);
+        border: 2px dashed rgba(255, 121, 254, 0.2);
+        border-radius: 10px;
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .empty-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="mb-4">
+            <a href="{{ url_for('admin_course_detail', course_id=statistics.course.id) }}"
+               class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i> Назад к курсу
+            </a>
+        </div>
+
+        <!-- Основная статистика -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value">{{ statistics.basic_stats.total_students }}</div>
+                <div class="stat-label">Всего студентов</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value">{{ statistics.basic_stats.completed_students }}</div>
+                <div class="stat-label">Завершили курс</div>
+                <div class="stat-trend">
+                    {{ statistics.basic_stats.completion_rate }}% завершения
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value">{{ statistics.basic_stats.average_final_score }}</div>
+                <div class="stat-label">Средний балл</div>
+                <div class="stat-trend">
+                    {{ statistics.basic_stats.average_progress }}% средний прогресс
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-running"></i>
+                </div>
+                <div class="stat-value">{{ statistics.basic_stats.active_students }}</div>
+                <div class="stat-label">Активных студентов</div>
+                <div class="stat-trend">
+                    {{ statistics.basic_stats.dropout_rate }}% отсев
+                </div>
+            </div>
+        </div>
+
+        {% if statistics.top_students %}
+            <!-- Топ студентов -->
+            <div class="top-students">
+                <h3 class="chart-title">
+                    <i class="fas fa-trophy"></i>
+                    Топ студентов
+                </h3>
+
+                <div class="students-list">
+                    {% for student in statistics.top_students %}
+                        <div class="student-item">
+                            <div class="student-rank">{{ student.rank }}</div>
+                            <div class="student-info">
+                                <div class="student-name">{{ student.student_name }}</div>
+                                <div class="student-email">{{ student.email }}</div>
+                            </div>
+                            <div class="student-score">
+                                <div class="score-value">{{ student.final_score }}</div>
+                                <div class="score-label">итоговый балл</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-stats">
+                <div class="empty-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="empty-title">Статистика недоступна</h3>
+                <p class="text-muted">По этому курсу еще нет данных для анализа</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

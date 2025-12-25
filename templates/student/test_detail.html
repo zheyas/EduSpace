@@ -1,0 +1,261 @@
+{% extends "student/base.html" %}
+
+{% block title %}{{ test_info.test_title }} - EduSpace{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Заголовок теста -->
+    <div class="mb-8">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ test_info.test_title }}</h1>
+                <div class="mt-2 flex items-center space-x-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ test_info.duration_minutes }} минут
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
+                        </svg>
+                        Макс. балл: {{ test_info.max_score }}
+                    </span>
+                    {% if test_info.attempts_allowed > 0 %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        Попыток: {{ test_info.attempts_allowed }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if test_info.course_id %}
+            <a href="{{ url_for('student_course_detail', course_id=test_info.course_id) }}"
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Назад к курсу
+            </a>
+            {% endif %}
+        </div>
+        {% if test_info.description %}
+        <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <p class="text-gray-700">{{ test_info.description }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Информация о статусе теста -->
+    <div class="mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Лучший результат -->
+<div class="text-center">
+    <div class="text-sm font-medium text-gray-500 mb-1">Лучший результат</div>
+    <div class="text-3xl font-bold {% if test_info.best_score is not none %}text-gray-900{% else %}text-gray-400{% endif %}">
+        {% if test_info.best_score is not none %}
+            {{ "%.1f"|format(test_info.best_score) }}/{{ test_info.max_score }}
+        {% else %}
+            Нет
+        {% endif %}
+    </div>
+    {% if test_info.best_score is not none %}
+    <div class="mt-2">
+        <div class="flex items-center justify-center">
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div class="bg-green-600 h-2.5 rounded-full"
+                     style="width: {{ (test_info.best_score / test_info.max_score * 100)|round|int }}%"></div>
+            </div>
+            <span class="ml-2 text-sm font-medium text-gray-700">
+                {{ ((test_info.best_score / test_info.max_score) * 100)|round(1) }}%
+            </span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+                <!-- Попытки -->
+<div class="text-center">
+    <div class="text-sm font-medium text-gray-500 mb-1">Использовано попыток</div>
+    <div class="text-3xl font-bold text-gray-900">
+        {{ test_info.attempts_used }}/{{ test_info.attempts_allowed }}
+    </div>
+    <div class="mt-2">
+        {% if test_info.attempts_used >= test_info.attempts_allowed %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            Лимит исчерпан
+        </span>
+        {% elif test_info.attempts_used > 0 %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            Доступно {{ test_info.attempts_allowed - test_info.attempts_used }} попыток
+        </span>
+        {% else %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Доступно {{ test_info.attempts_allowed }} попыток
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+                <!-- Доступность -->
+                <div class="text-center">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Статус</div>
+                    {% if test_info.can_start %}
+                    <div class="text-3xl font-bold text-green-600">Доступно</div>
+                    <div class="mt-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            Можно начать
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="text-3xl font-bold text-red-600">Недоступно</div>
+                    <div class="mt-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            {{ test_info.unavailable_reason }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка начала теста -->
+    {% if test_info.can_start %}
+    <div class="mb-8 text-center">
+        <a href="{{ url_for('start_test', test_id=test_info.test_id) }}"
+           class="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-full shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:-translate-y-1">
+            <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Начать тест
+        </a>
+        <p class="mt-4 text-sm text-gray-500">
+            Время на выполнение: {{ test_info.duration_minutes }} минут. После начала теста таймер нельзя остановить.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- История попыток -->
+    {% if test_info.previous_attempts %}
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">История попыток</h2>
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+                <h3 class="text-lg font-medium text-gray-900">Предыдущие результаты</h3>
+            </div>
+            <div class="divide-y divide-gray-200">
+                {% for attempt in test_info.previous_attempts %}
+                <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center">
+                                <span class="text-lg font-medium text-gray-900">Попытка #{{ attempt.attempt_number }}</span>
+                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if attempt.percentage >= 80 %}bg-green-100 text-green-800{% elif attempt.percentage >= 60 %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ attempt.percentage|round(1) }}%
+                                </span>
+                            </div>
+                            <div class="mt-1 flex items-center text-sm text-gray-500">
+                                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>{{ attempt.finished_at[:10] }} {{ attempt.finished_at[11:16] }}</span>
+                                <span class="mx-2">•</span>
+                                <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                <span>{{ (attempt.duration_sec // 60) }} мин {{ attempt.duration_sec % 60 }} сек</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <span class="text-2xl font-bold text-gray-900">{{ attempt.score|round(1) }}/{{ test_info.max_score }}</span>
+                                <div class="text-sm text-gray-500">баллов</div>
+                            </div>
+                            {% if attempt.result_id %}
+<a href="{{ url_for('test_result', test_id=test_info.test_id, test_result_id=attempt.result_id) }}"
+   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+    Подробнее
+</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Инструкция -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+        <div class="flex">
+            <svg class="h-6 w-6 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <div class="ml-3">
+                <h3 class="text-lg font-medium text-yellow-800">Инструкция</h3>
+                <div class="mt-2 text-yellow-700">
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Тест состоит из вопросов разного типа: выбор одного ответа, множественный выбор, ввод текста</li>
+                        <li>Время на выполнение теста ограничено {{ test_info.duration_minutes }} минутами</li>
+                        <li>После начала теста таймер нельзя остановить</li>
+                        <li>Ответы сохраняются автоматически при переходе между вопросами</li>
+                        <li>Для успешной сдачи теста необходимо набрать минимальный проходной балл</li>
+                        {% if test_info.attempts_allowed > 0 %}
+                        <li>Количество попыток ограничено: {{ test_info.attempts_allowed }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Если нет попыток и тест недоступен -->
+    {% if not test_info.previous_attempts and not test_info.can_start %}
+    <div class="bg-white rounded-lg shadow p-8 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">Тест недоступен</h3>
+        <p class="mt-2 text-gray-500">{{ test_info.unavailable_reason }}</p>
+        <div class="mt-6">
+            <a href="{{ url_for('student_courses') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                Вернуться к курсам
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Анимация прогресс-баров
+    const progressBars = document.querySelectorAll('.bg-green-600, .bg-yellow-600, .bg-red-600');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => {
+            bar.style.width = width;
+            bar.classList.add('progress-animate');
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

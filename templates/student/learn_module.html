@@ -1,0 +1,614 @@
+{% extends "student/base.html" %}
+
+{% block title %}{{ module_data.module.title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-white">
+  <div class="grid grid-cols-12">
+
+    <!-- LEFT SIDEBAR - Список уроков -->
+    <aside class="col-span-12 lg:col-span-4 xl:col-span-3 border-r border-gray-200 bg-gray-50">
+      <div class="h-screen sticky top-0 flex flex-col">
+
+        <!-- Верхняя панель навигации -->
+        <div class="px-6 pt-6 pb-4 flex items-center justify-between">
+          <!-- Кнопка "Назад" -->
+          <a href="{{ url_for('student_course_detail', course_id=course.id) }}"
+             class="inline-flex items-center gap-2 text-sm font-medium text-purple-700 hover:text-purple-800">
+            <span class="text-xl leading-none">←</span>
+            К расписанию
+          </a>
+
+          <!-- Кнопка закрытия -->
+          <a href="{{ url_for('student_course_detail', course_id=course.id) }}"
+             class="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors">
+            <span class="text-xl leading-none text-gray-600">×</span>
+          </a>
+        </div>
+
+        <!-- Заголовок модуля -->
+        <div class="px-6 pb-4">
+          <h1 class="text-xl font-bold text-gray-900 truncate">
+            {{ module_data.module.title }}
+          </h1>
+          {% if module_data.module.short_description %}
+          <p class="text-sm text-gray-500 mt-1 truncate">{{ module_data.module.short_description }}</p>
+          {% endif %}
+          <div class="text-xs text-gray-400 mt-1">Теория и практика</div>
+        </div>
+
+        <!-- Прогресс модуля -->
+        <div class="px-6 pb-4">
+          <div class="flex items-center justify-between text-sm mb-2">
+            <span class="text-gray-700">Прогресс модуля</span>
+            <span class="font-semibold text-purple-600">
+              {{ module_progress.progress_percent|round|int if module_progress else 0 }}%
+            </span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                 style="width: {{ module_progress.progress_percent if module_progress else 0 }}%"></div>
+          </div>
+        </div>
+
+        <!-- Список материалов -->
+        <div class="flex-1 px-3 pb-6 overflow-y-auto">
+          {% if module_data.materials %}
+            <div class="space-y-1">
+              {% for material in module_data.materials|sort(attribute='material_order') %}
+                {% set is_active = (active_material and material.id == active_material.id) %}
+                {% set is_completed = material.get('completed', false) %}
+
+                <a href="{{ url_for('learn_module', course_id=course.id, module_id=module_data.module.id) }}?material_id={{ material.id }}"
+                   class="group flex items-center justify-between gap-3 rounded-xl px-4 py-3 transition-all duration-200
+                          {% if is_active %} bg-white border border-gray-200 shadow-sm {% else %} hover:bg-white/60 {% endif %}">
+                  <div class="min-w-0 flex items-center gap-3">
+                    <!-- Номер урока -->
+                    <div class="flex-none w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
+                                {% if is_completed %}bg-green-100 text-green-800
+                                {% elif is_active %}bg-purple-100 text-purple-800
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                      {{ material.material_order }}
+                    </div>
+
+                    <div>
+                      <div class="text-sm font-medium {% if is_active %}text-gray-900{% else %}text-gray-700{% endif %} truncate">
+                        {{ material.title }}
+                      </div>
+                      <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        {% if material.content_type == 'text' %}
+                          <span class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                            </svg>
+                            Текст
+                          </span>
+                        {% elif material.content_type == 'video' %}
+                          <span class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                            </svg>
+                            Видео
+                          </span>
+                        {% elif material.content_type == 'pdf' %}
+                          <span class="flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                            </svg>
+                            PDF
+                          </span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Статус точки -->
+                  <div class="flex-none">
+                    {% if is_completed %}
+                      <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    {% elif is_active %}
+                      <div class="relative">
+                        <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
+                        <div class="absolute inset-0 rounded-full bg-purple-500 animate-ping opacity-75"></div>
+                      </div>
+                    {% else %}
+                      <div class="w-3 h-3 rounded-full bg-gray-300 group-hover:bg-gray-400"></div>
+                    {% endif %}
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="px-3 py-6 text-sm text-gray-500 text-center">Материалов нет.</div>
+          {% endif %}
+
+          <!-- Тесты модуля -->
+          {% if tests %}
+            <div class="pt-6 mt-6 border-t border-gray-200">
+              <h3 class="text-sm font-semibold text-gray-900 px-3 mb-3">Тесты модуля</h3>
+              <div class="space-y-1">
+                {% for test in tests %}
+                  <a href="{{ url_for('take_test', test_id=test.id) }}"
+                     class="group flex items-center justify-between gap-3 rounded-xl px-4 py-3 hover:bg-white/60 transition-all duration-200">
+                    <div class="min-w-0">
+                      <div class="text-sm font-medium text-gray-700 truncate">
+                        Тест: {{ test.title }}
+                      </div>
+                      <div class="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                        <span>{{ test.time_limit }} мин</span>
+                        <span>•</span>
+                        <span>{{ test.max_score }} баллов</span>
+                      </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </a>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT CONTENT - Контент урока -->
+    <main class="col-span-12 lg:col-span-8 xl:col-span-9 bg-white">
+      <div class="max-w-4xl mx-auto px-6 py-8">
+
+        <!-- Заголовок урока и счетчик -->
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div class="text-2xl font-bold text-gray-900">
+              {% if active_material %}{{ active_material.material_order }}. {{ active_material.title }}{% else %}Материал{% endif %}
+            </div>
+            {% if active_material and active_material.content_type %}
+            <div class="text-sm text-gray-500 mt-1">
+              {% if active_material.content_type == 'text' %}Текстовый материал
+              {% elif active_material.content_type == 'video' %}Видеоурок
+              {% elif active_material.content_type == 'pdf' %}PDF документ
+              {% else %}Дополнительный материал{% endif %}
+            </div>
+            {% endif %}
+          </div>
+          <div class="text-sm text-gray-400 whitespace-nowrap">
+            {% if module_data.materials and active_material %}
+              {{ active_material.material_order }} из {{ module_data.materials|length }}
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Блок "На уроке вы:" -->
+        <div class="rounded-2xl bg-blue-50 border border-blue-100 p-6 mb-6">
+          <div class="font-semibold text-gray-900 mb-3 flex items-center">
+            <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            На уроке вы:
+          </div>
+          <ul class="list-disc pl-5 text-gray-700 space-y-2">
+            {% if active_material and active_material.description %}
+              {% set description_lines = active_material.description.split('\n') %}
+              {% for line in description_lines %}
+                {% if line.strip() %}
+                  <li>{{ line.strip() }}</li>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              <li>познакомитесь с ключевыми понятиями темы</li>
+              <li>разберёте примеры и типовые ошибки</li>
+              <li>закрепите материал на практике</li>
+            {% endif %}
+          </ul>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="rounded-2xl border border-gray-200 shadow-sm overflow-hidden bg-white mb-6">
+          {% if active_material %}
+            <div class="p-6">
+              {% if active_material.content_type == 'text' %}
+                <div class="prose max-w-none">
+                  {{ active_material.content|safe if active_material.content else 'Контент не найден' }}
+                </div>
+
+              {% elif active_material.content_type == 'video' %}
+                <div class="aspect-video w-full overflow-hidden rounded-xl bg-black mb-4">
+                  {% if active_material.content and 'youtube.com' in active_material.content or 'youtu.be' in active_material.content %}
+                    {% if 'watch?v=' in active_material.content %}
+                      {% set video_id = active_material.content.split('watch?v=')[1] %}
+                      <iframe src="https://www.youtube.com/embed/{{ video_id }}"
+                              class="w-full h-full"
+                              frameborder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowfullscreen>
+                      </iframe>
+                    {% else %}
+                      <iframe src="{{ active_material.content }}"
+                              class="w-full h-full"
+                              frameborder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowfullscreen>
+                      </iframe>
+                    {% endif %}
+                  {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-white">
+                      <div class="text-center">
+                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <p>Видео недоступно</p>
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+                {% if active_material.video_duration %}
+                <div class="text-sm text-gray-500">
+                  Длительность: {{ active_material.video_duration }} минут
+                </div>
+                {% endif %}
+
+              {% elif active_material.content_type == 'pdf' %}
+                <div class="p-8 text-center border-2 border-dashed border-gray-300 rounded-xl">
+                  <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                  </svg>
+                  <h3 class="text-lg font-medium text-gray-900 mb-2">{{ active_material.title }}</h3>
+                  <p class="text-gray-600 mb-4">PDF документ</p>
+                  <a href="{{ active_material.content }}"
+                     target="_blank"
+                     class="inline-flex items-center px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                    Скачать PDF
+                  </a>
+                </div>
+
+              {% else %}
+                <div class="p-8 text-center border-2 border-dashed border-gray-300 rounded-xl">
+                  <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/>
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/>
+                  </svg>
+                  <h3 class="text-lg font-medium text-gray-900 mb-2">Внешний ресурс</h3>
+                  <a href="{{ active_material.content }}"
+                     target="_blank"
+                     class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Перейти к материалу
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Нижняя панель с кнопками -->
+            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+              <!-- Прогресс -->
+              <div class="text-sm text-gray-500 flex items-center">
+                {% if active_material.completed %}
+                  <span class="flex items-center text-green-600">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Изучено
+                  </span>
+                {% else %}
+                  <span class="flex items-center text-gray-500">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    В процессе
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Кнопки действий -->
+              <div class="flex items-center gap-3">
+                {% if not active_material.completed %}
+                  <button onclick="markAsCompleted('{{ active_material.id }}')"
+                          class="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center"
+                          id="mark-completed-btn">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Отметить изученным
+                  </button>
+                {% endif %}
+
+                <!-- Кнопка "Далее" -->
+                {% set materials_sorted = module_data.materials|sort(attribute='material_order') if module_data.materials else [] %}
+                {% set next_id = None %}
+                {% set next_completed = None %}
+
+                {% if active_material and materials_sorted %}
+                  {% for m in materials_sorted %}
+                    {% if m.material_order == active_material.material_order + 1 %}
+                      {% set next_id = m.id %}
+                      {% set next_completed = m.completed %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+
+                {% if next_id %}
+                  <a href="{{ url_for('learn_module', course_id=course.id, module_id=module_data.module.id) }}?material_id={{ next_id }}"
+                     class="w-12 h-12 rounded-xl {% if next_completed %}bg-green-600{% else %}bg-purple-600{% endif %} text-white hover:{% if next_completed %}bg-green-700{% else %}bg-purple-700{% endif %} transition-colors flex items-center justify-center group"
+                     title="Следующий урок">
+                    <span class="text-xl">→</span>
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+
+          {% else %}
+            <!-- Сообщение при отсутствии активного материала -->
+            <div class="p-12 text-center">
+              <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Выберите материал для изучения</h3>
+              <p class="text-gray-600">Нажмите на любой урок в списке слева, чтобы начать обучение.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+async function markAsCompleted(materialId) {
+  const button = document.getElementById('mark-completed-btn');
+  if (!button) return;
+
+  button.disabled = true;
+  button.innerHTML = '<svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Отмечаем...';
+
+  try {
+    const response = await fetch('/api/learning/mark_completed', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ material_id: materialId })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      showNotification('Материал отмечен как изученный', 'success');
+      // Перезагружаем страницу через 1 секунду
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      button.disabled = false;
+      button.innerHTML = '<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Отметить изученным';
+      showNotification('Ошибка: ' + result.message, 'error');
+    }
+  } catch (error) {
+    button.disabled = false;
+    button.innerHTML = '<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Отметить изученным';
+    showNotification('Ошибка сети: ' + error.message, 'error');
+  }
+}
+
+function showNotification(message, type) {
+  // Удаляем предыдущие уведомления
+  const existingNotifications = document.querySelectorAll('.notification-toast');
+  existingNotifications.forEach(n => n.remove());
+
+  // Создаем уведомление
+  const notification = document.createElement('div');
+  notification.className = `notification-toast fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${
+    type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'
+  }`;
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+      </svg>
+      ${message}
+    </div>
+  `;
+
+  document.body.appendChild(notification);
+
+  // Удаляем уведомление через 3 секунды
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+// Автоматическая высота для видео контейнера
+function adjustVideoHeight() {
+  const videoContainers = document.querySelectorAll('.aspect-video');
+  videoContainers.forEach(container => {
+    const width = container.offsetWidth;
+    container.style.height = (width * 9 / 16) + 'px';
+  });
+}
+
+// Запускаем при загрузке и при изменении размера окна
+window.addEventListener('load', adjustVideoHeight);
+window.addEventListener('resize', adjustVideoHeight);
+</script>
+
+<style>
+/* Кастомные стили для улучшения внешнего вида */
+.aspect-video {
+  position: relative;
+  background-color: #000;
+}
+
+.aspect-video iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.prose {
+  color: #374151;
+  line-height: 1.75;
+  font-size: 16px;
+}
+
+.prose h1 {
+  color: #111827;
+  font-weight: 700;
+  font-size: 2em;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5em;
+}
+
+.prose h2 {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1.5em;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose h3 {
+  color: #111827;
+  font-weight: 600;
+  font-size: 1.25em;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+
+.prose p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose ul, .prose ol {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose a {
+  color: #4f46e5;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.prose a:hover {
+  color: #3730a3;
+}
+
+/* Стили для выделения кода */
+.prose code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Droid Sans Mono', 'Courier New', monospace;
+  font-size: 0.875em;
+}
+
+.prose pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 1em;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+.prose blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  font-style: italic;
+  color: #6b7280;
+  margin: 1.5em 0;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5em 0;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+}
+
+.prose th, .prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75em;
+  text-align: left;
+}
+
+.prose th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+/* Анимации */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Плавные переходы */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Стили для скроллбара */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+</style>
+{% endblock %}

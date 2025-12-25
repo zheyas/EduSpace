@@ -1,0 +1,258 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Просмотр модуля — EduSpace{% endblock %}
+{% block page_title %}Просмотр модуля{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Заголовок и кнопки -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ module.title }}</h1>
+            <p class="text-gray-600 mt-1">Курс: {{ course.title }}</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ url_for('admin_edit_module', module_id=module.id) }}"
+               class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition">
+                <i class="fas fa-edit mr-2"></i> Редактировать
+            </a>
+            <a href="{{ url_for('admin_create_material', module_id=module.id) }}"
+               class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                <i class="fas fa-plus mr-2"></i> Добавить материал
+            </a>
+            <a href="{{ url_for('admin_create_test', module_id=module.id) }}"
+               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                <i class="fas fa-plus mr-2"></i> Добавить тест
+            </a>
+        </div>
+    </div>
+
+    <!-- Информация о модуле -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Информация о модуле</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="font-medium text-gray-700 mb-2">Описание модуля</h3>
+                <p class="text-gray-600">{{ module.description or 'Нет описания' }}</p>
+            </div>
+            <div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-700">Порядок:</span>
+                    <span class="font-medium">{{ module.module_order }}</span>
+                </div>
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-700">Дата создания:</span>
+<span class="font-medium">{{ module.created_at.strftime('%Y-%m-%d') if module.created_at else 'Не указана' }}</span>                </div>
+                {% if module.estimated_duration %}
+                <div class="flex justify-between">
+                    <span class="text-gray-700">Примерное время изучения:</span>
+                    <span class="font-medium">{{ module.estimated_duration }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Материалы модуля -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Учебные материалы</h2>
+            <a href="{{ url_for('admin_create_material', module_id=module.id) }}"
+               class="text-sm text-blue-600 hover:text-blue-800">
+                <i class="fas fa-plus mr-1"></i> Добавить
+            </a>
+        </div>
+
+        {% if materials %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Порядок</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Тип</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата создания</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for material in materials %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ material.material_order }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ material.title }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                        {% if material.content_type == 'text' %}bg-blue-100 text-blue-800
+                                        {% elif material.content_type == 'video' %}bg-red-100 text-red-800
+                                        {% elif material.content_type == 'pdf' %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {% if material.content_type == 'text' %}Текст
+                                        {% elif material.content_type == 'video' %}Видео
+                                        {% elif material.content_type == 'pdf' %}PDF
+                                        {% elif material.content_type == 'link' %}Ссылка
+                                        {% elif material.content_type == 'quiz' %}Тест
+                                        {% else %}{{ material.content_type }}{% endif %}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+{{ material.created_at.strftime('%Y-%m-%d') if material.created_at else '' }}                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ url_for('admin_edit_material', material_id=material.id) }}"
+                                           class="text-yellow-600 hover:text-yellow-900">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post"
+                                              action="{{ url_for('admin_delete_material', material_id=material.id) }}"
+                                              onsubmit="return confirm('Удалить материал \"{{ material.title }}\"?');"
+                                              class="inline">
+                                            <button type="submit" class="text-red-600 hover:text-red-900">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-file-alt text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 mb-4">В модуле пока нет учебных материалов</p>
+                <a href="{{ url_for('admin_create_material', module_id=module.id) }}"
+                   class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                    <i class="fas fa-plus mr-2"></i> Добавить первый материал
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Тесты модуля -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Тесты модуля</h2>
+            <a href="{{ url_for('admin_create_test', module_id=module.id) }}"
+               class="text-sm text-blue-600 hover:text-blue-800">
+                <i class="fas fa-plus mr-1"></i> Добавить
+            </a>
+        </div>
+
+        {% if tests %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Описание</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ограничения</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата создания</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for test in tests %}
+                            <tr>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ test.title }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-500">
+                                        {% if test.description %}
+                                            {{ test.description[:100] }}{% if test.description|length > 100 %}...{% endif %}
+                                        {% else %}
+                                            <span class="text-gray-400">—</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div class="flex flex-col gap-1">
+                                        {% if test.time_limit %}
+                                            <span class="time-badge">
+                                                <i class="fas fa-clock mr-1"></i> {{ test.time_limit }} мин
+                                            </span>
+                                        {% endif %}
+                                        {% if test.max_score %}
+                                            <span class="score-badge">
+                                                <i class="fas fa-star mr-1"></i> {{ test.max_score }} баллов
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+{{ test.created_at.strftime('%Y-%m-%d') if test.created_at else '' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ url_for('admin_view_test', test_id=test.id) }}"
+                                           class="text-blue-600 hover:text-blue-900">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin_edit_test', test_id=test.id) }}"
+                                           class="text-yellow-600 hover:text-yellow-900">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post"
+                                              action="{{ url_for('admin_delete_test', test_id=test.id) }}"
+                                              onsubmit="return confirm('Удалить тест \"{{ test.title }}\"?');"
+                                              class="inline">
+                                            <button type="submit" class="text-red-600 hover:text-red-900">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-clipboard-check text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 mb-4">В модуле пока нет тестов</p>
+                <a href="{{ url_for('admin_create_test', module_id=module.id) }}"
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                    <i class="fas fa-plus mr-2"></i> Добавить первый тест
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Кнопка возврата -->
+    <div class="mt-6">
+        <a href="{{ url_for('admin_view_course', course_id=course.id) }}"
+           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-arrow-left mr-2"></i> Назад к курсу
+        </a>
+    </div>
+</div>
+
+<style>
+    .time-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .score-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

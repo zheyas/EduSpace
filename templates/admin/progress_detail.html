@@ -1,0 +1,737 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Детали прогресса — EduSpace{% endblock %}
+{% block page_title %}Детали прогресса{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header-info {
+        background: rgba(255, 121, 254, 0.1);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .info-block {
+        padding: 1rem;
+    }
+
+    .info-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .info-content {
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.6;
+    }
+
+    .progress-overview {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .overview-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+    }
+
+    .progress-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(26, 26, 26, 0.5);
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid rgba(255, 121, 254, 0.2);
+    }
+
+    .stat-number {
+        font-family: 'Orbitron', monospace;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--secondary-color);
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 15px var(--secondary-color);
+    }
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .progress-visual {
+        margin-top: 2rem;
+    }
+
+    .progress-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .progress-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .progress-label {
+        width: 200px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .progress-bar {
+        flex: 1;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        border-radius: 6px;
+        transition: width 1s ease-in-out;
+    }
+
+    .progress-value {
+        width: 80px;
+        text-align: right;
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .modules-section {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .modules-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .module-card {
+        background: rgba(26, 26, 26, 0.5);
+        border-radius: 10px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .module-card:hover {
+        border-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .module-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .module-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .module-status {
+        display: inline-block;
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-completed {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+
+    .status-in-progress {
+        background: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+    }
+
+    .status-not-started {
+        background: rgba(149, 165, 166, 0.2);
+        color: #95a5a6;
+    }
+
+    .module-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 0.3rem;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .tests-section {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .test-results {
+        overflow-x: auto;
+    }
+
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .results-table th {
+        background: rgba(255, 121, 254, 0.2);
+        color: var(--primary-color);
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        padding: 1rem;
+        text-align: left;
+    }
+
+    .results-table td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-color);
+    }
+
+    .results-table tr:hover {
+        background: rgba(255, 121, 254, 0.12);
+    }
+
+    .test-passed {
+        color: #2ecc71;
+        font-weight: 600;
+    }
+
+    .test-failed {
+        color: #e74c3c;
+        font-weight: 600;
+    }
+
+    .test-pending {
+        color: #f1c40f;
+        font-weight: 600;
+    }
+
+    .actions-section {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+        margin-top: 2rem;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -24px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--secondary-color);
+        border: 3px solid var(--dark-bg);
+    }
+
+    .timeline-date {
+        font-size: 0.9rem;
+        color: var(--secondary-color);
+        margin-bottom: 0.3rem;
+        font-family: 'Orbitron', monospace;
+    }
+
+    .timeline-content {
+        color: rgba(255, 255, 255, 0.9);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="progress-detail-container">
+        <!-- Заголовок с общей информацией -->
+        <div class="header-info">
+            <div class="info-block">
+                <h3 class="info-title">Студент</h3>
+                <div class="info-content">
+                    <strong>{{ progress.student_name }}</strong><br>
+                    {{ progress.student_email }}<br>
+                    ID: {{ progress.student_id }}<br>
+                    Зарегистрирован: {{ progress.student_registered.strftime('%d.%m.%Y') if progress.student_registered else '—' }}
+                </div>
+            </div>
+
+            <div class="info-block">
+                <h3 class="info-title">Курс</h3>
+                <div class="info-content">
+                    <strong>{{ progress.course_title }}</strong><br>
+                    Преподаватель: {{ progress.course_author }}<br>
+                    ID: {{ progress.course_id }}<br>
+                    Начало: {{ progress.enrollment_date.strftime('%d.%m.%Y') if progress.enrollment_date else '—' }}
+                </div>
+            </div>
+
+            <div class="info-block">
+                <h3 class="info-title">Статус</h3>
+                <div class="info-content">
+                    {% if progress.status == 'completed' %}
+                        <span style="color: #2ecc71; font-weight: 600;">
+                            <i class="fas fa-check-circle mr-1"></i> Завершен
+                        </span>
+                    {% elif progress.status == 'active' %}
+                        <span style="color: #3498db; font-weight: 600;">
+                            <i class="fas fa-play-circle mr-1"></i> Активен
+                        </span>
+                    {% else %}
+                        <span style="color: #95a5a6; font-weight: 600;">
+                            <i class="fas fa-pause-circle mr-1"></i> Не активен
+                        </span>
+                    {% endif %}
+                    <br>
+                    Последняя активность: {{ progress.last_activity.strftime('%d.%m.%Y %H:%M') if progress.last_activity else '—' }}
+                    <br>
+                    {% if progress.completion_date %}
+                        Завершен: {{ progress.completion_date.strftime('%d.%m.%Y') }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Обзор прогресса -->
+        <div class="progress-overview">
+            <h2 class="overview-title">Обзор прогресса</h2>
+
+            <div class="progress-stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ progress.progress_percent|round(1) }}%</div>
+                    <div class="stat-label">Общий прогресс</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number">{{ progress.completed_modules }}/{{ progress.total_modules }}</div>
+                    <div class="stat-label">Модулей завершено</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number">{{ progress.total_time|round(1) if progress.total_time else 0 }} ч</div>
+                    <div class="stat-label">Потрачено времени</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number">{{ progress.final_grade|round(1) if progress.final_grade else 0 }}%</div>
+                    <div class="stat-label">Итоговая оценка</div>
+                </div>
+            </div>
+
+            <div class="progress-visual">
+                <div class="progress-bars">
+                    <div class="progress-item">
+                        <div class="progress-label">Прогресс по курсу</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ progress.progress_percent }}%;"></div>
+                        </div>
+                        <div class="progress-value">{{ progress.progress_percent|round(1) }}%</div>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-label">Тесты</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ progress.test_progress }}%;"></div>
+                        </div>
+                        <div class="progress-value">{{ progress.test_progress|round(1) }}%</div>
+                    </div>
+
+                    <div class="progress-item">
+                        <div class="progress-label">Практические задания</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ progress.assignments_progress }}%;"></div>
+                        </div>
+                        <div class="progress-value">{{ progress.assignments_progress|round(1) }}%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Детали по модулям -->
+        <div class="modules-section">
+            <h2 class="section-title">Прогресс по модулям</h2>
+
+            <div class="modules-grid">
+                {% for module in modules_progress %}
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-title">
+                                Модуль {{ loop.index }}: {{ module.title }}
+                                {% if module.order %}
+                                    <small style="color: rgba(255, 255, 255, 0.5);">(Порядок: {{ module.order }})</small>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if module.status == 'completed' %}
+                                    <span class="module-status status-completed">
+                                        <i class="fas fa-check mr-1"></i> Завершен
+                                    </span>
+                                {% elif module.status == 'in_progress' %}
+                                    <span class="module-status status-in-progress">
+                                        <i class="fas fa-play mr-1"></i> В процессе
+                                    </span>
+                                {% else %}
+                                    <span class="module-status status-not-started">
+                                        <i class="fas fa-clock mr-1"></i> Не начат
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if module.description %}
+                            <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 1rem;">
+                                {{ module.description[:100] }}{% if module.description|length > 100 %}...{% endif %}
+                            </p>
+                        {% endif %}
+
+                        <div class="module-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Прогресс</span>
+                                <span class="detail-value">{{ module.progress_percent|round(1) if module.progress_percent else 0 }}%</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Начато</span>
+                                <span class="detail-value">
+                                    {% if module.started_at %}
+                                        {{ module.started_at.strftime('%d.%m.%Y') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Завершено</span>
+                                <span class="detail-value">
+                                    {% if module.completed_at %}
+                                        {{ module.completed_at.strftime('%d.%m.%Y') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Время</span>
+                                <span class="detail-value">{{ module.time_spent|round(1) if module.time_spent else 0 }} ч</span>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 2rem; color: rgba(255, 255, 255, 0.5);">
+                        <i class="fas fa-layer-group fa-3x mb-3"></i>
+                        <p>Нет данных о прогрессе по модулям</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Результаты тестов -->
+        <div class="tests-section">
+            <h2 class="section-title">Результаты тестов</h2>
+
+            <div class="test-results">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Тест</th>
+                            <th>Тип</th>
+                            <th>Дата прохождения</th>
+                            <th>Результат</th>
+                            <th>Баллы</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for test in test_results %}
+                            <tr>
+                                <td>
+                                    <strong>{{ test.title }}</strong>
+                                    {% if test.description %}
+                                        <br>
+                                        <small style="color: rgba(255, 255, 255, 0.5);">
+                                            {{ test.description[:50] }}{% if test.description|length > 50 %}...{% endif %}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if test.test_type == 'pre' %}
+                                        <span style="color: #3498db;">Пре-тест</span>
+                                    {% elif test.test_type == 'post' %}
+                                        <span style="color: #2ecc71;">Пост-тест</span>
+                                    {% else %}
+                                        <span style="color: #f1c40f;">Промежуточный</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if test.completed_at %}
+                                        {{ test.completed_at.strftime('%d.%m.%Y %H:%M') }}
+                                    {% else %}
+                                        <span style="color: rgba(255, 255, 255, 0.5);">Не пройден</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if test.score is not none %}
+                                        {{ test.score|round(1) }}%
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if test.max_score %}
+                                        {{ test.score|round(1) if test.score else 0 }}/{{ test.max_score }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if test.status == 'passed' %}
+                                        <span class="test-passed">
+                                            <i class="fas fa-check-circle mr-1"></i> Сдан
+                                        </span>
+                                    {% elif test.status == 'failed' %}
+                                        <span class="test-failed">
+                                            <i class="fas fa-times-circle mr-1"></i> Не сдан
+                                        </span>
+                                    {% else %}
+                                        <span class="test-pending">
+                                            <i class="fas fa-clock mr-1"></i> В ожидании
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2rem; color: rgba(255, 255, 255, 0.5);">
+                                    <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                    <p>Нет результатов тестов</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Активность -->
+        <div class="modules-section">
+            <h2 class="section-title">История активности</h2>
+
+            <div class="timeline">
+                {% for activity in activities %}
+                    <div class="timeline-item">
+                        <div class="timeline-date">
+                            {{ activity.created_at.strftime('%d.%m.%Y %H:%M') if activity.created_at else '—' }}
+                        </div>
+                        <div class="timeline-content">
+                            {% if activity.action_type == 'module_start' %}
+                                <i class="fas fa-play text-blue-400 mr-2"></i>
+                                Начал модуль "{{ activity.details }}"
+                            {% elif activity.action_type == 'module_complete' %}
+                                <i class="fas fa-check text-green-400 mr-2"></i>
+                                Завершил модуль "{{ activity.details }}"
+                            {% elif activity.action_type == 'test_start' %}
+                                <i class="fas fa-file-alt text-yellow-400 mr-2"></i>
+                                Начал тест "{{ activity.details }}"
+                            {% elif activity.action_type == 'test_complete' %}
+                                <i class="fas fa-check-circle text-green-400 mr-2"></i>
+                                Завершил тест "{{ activity.details }}"
+                            {% elif activity.action_type == 'material_view' %}
+                                <i class="fas fa-book text-purple-400 mr-2"></i>
+                                Просмотрел материал "{{ activity.details }}"
+                            {% else %}
+                                <i class="fas fa-history text-gray-400 mr-2"></i>
+                                {{ activity.details }}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: 2rem; color: rgba(255, 255, 255, 0.5);">
+                        <i class="fas fa-history fa-3x mb-3"></i>
+                        <p>Нет данных об активности</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Действия -->
+        <div class="actions-section">
+            <a href="{{ url_for('admin_progress') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i> Назад к списку
+            </a>
+
+            <button type="button" class="btn btn-primary" onclick="printProgress()">
+                <i class="fas fa-print mr-2"></i> Печать отчета
+            </button>
+
+            <button type="button" class="btn btn-primary" onclick="exportProgressDetail()">
+                <i class="fas fa-download mr-2"></i> Экспорт отчета
+            </button>
+
+            {% if progress.status != 'completed' %}
+                <form method="post" action="{{ url_for('admin_complete_progress', progress_id=progress.id) }}"
+                      onsubmit="return confirm('Вы уверены, что хотите отметить прогресс как завершенный?');"
+                      style="display: inline;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-circle mr-2"></i> Завершить курс
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function printProgress() {
+        window.print();
+    }
+
+    function exportProgressDetail() {
+        const data = {
+            student: {
+                name: '{{ progress.student_name }}',
+                email: '{{ progress.student_email }}',
+                id: '{{ progress.student_id }}'
+            },
+            course: {
+                title: '{{ progress.course_title }}',
+                id: '{{ progress.course_id }}'
+            },
+            progress: {
+                percent: {{ progress.progress_percent|round(1) }},
+                completed_modules: {{ progress.completed_modules }},
+                total_modules: {{ progress.total_modules }},
+                final_grade: {{ progress.final_grade|round(1) if progress.final_grade else 0 }},
+                status: '{{ progress.status }}'
+            },
+            modules: {{ modules_progress|tojson|safe }},
+            tests: {{ test_results|tojson|safe }},
+            activities: {{ activities|tojson|safe }},
+            export_date: new Date().toISOString()
+        };
+
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `progress_detail_${data.student.name}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Анимация прогресс-баров при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-fill');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 300);
+        });
+    });
+</script>
+{% endblock %}

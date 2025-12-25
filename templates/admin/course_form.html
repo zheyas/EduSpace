@@ -1,0 +1,289 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if course %}Редактирование курса{% else %}Создание курса{% endif %} — EduSpace{% endblock %}
+{% block page_title %}{% if course %}Редактирование курса{% else %}Создание курса{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: rgba(40, 40, 40, 0.7);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-title {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        background: rgba(26, 26, 26, 0.5);
+        border: 1px solid rgba(255, 121, 254, 0.3);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 3px rgba(255, 245, 0, 0.1);
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23FF79FE' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 121, 254, 0.2);
+    }
+
+    .required::after {
+        content: " *";
+        color: #e74c3c;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin-right: 1rem;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: var(--text-color);
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: var(--primary-color);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .switch-label {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .course-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: rgba(255, 121, 254, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 121, 254, 0.3);
+    }
+
+    .course-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 121, 254, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .course-details h3 {
+        font-family: 'Orbitron', monospace;
+        color: var(--secondary-color);
+        margin-bottom: 0.3rem;
+    }
+
+    .course-details p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        {% if course %}
+            <div class="course-info">
+                <div class="course-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="course-details">
+                    <h3>{{ course.title }}</h3>
+                    <p>ID: {{ course.id }} • Создан: {{ course.created_at.strftime('%d.%m.%Y %H:%M') if course.created_at else 'Не указано' }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="form-card">
+            <h2 class="form-title">
+                {% if course %}
+                    Редактирование курса
+                {% else %}
+                    Создание нового курса
+                {% endif %}
+            </h2>
+
+            <form method="post">
+                <div class="form-group">
+                    <label class="form-label required">Название курса</label>
+                    <input type="text"
+                           name="title"
+                           class="form-control"
+                           value="{{ course.title if course else '' }}"
+                           required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Краткое описание</label>
+                        <input type="text"
+                               name="short_description"
+                               class="form-control"
+                               value="{{ course.short_description if course else '' }}"
+                               placeholder="Короткое описание для карточки курса">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Преподаватель</label>
+                        <select name="author_id" class="form-control form-select" required>
+                            <option value="">Выберите преподавателя</option>
+                            {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}"
+                                        {% if course and course.author_id == teacher.id %}selected{% endif %}>
+                                    {{ teacher.first_name }} {{ teacher.last_name }} ({{ teacher.email }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Подробное описание</label>
+                    <textarea name="description"
+                              class="form-control form-textarea"
+                              placeholder="Полное описание курса, цели, задачи...">{{ course.description if course else '' }}</textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Дата начала</label>
+                        <input type="date"
+                               name="start_date"
+                               class="form-control"
+                               value="{{ course.start_date.strftime('%Y-%m-%d') if course and course.start_date else '' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Дата окончания</label>
+                        <input type="date"
+                               name="end_date"
+                               class="form-control"
+                               value="{{ course.end_date.strftime('%Y-%m-%d') if course and course.end_date else '' }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="switch-label">
+                        <label class="switch">
+                            <input type="checkbox"
+                                   name="is_active"
+                                   {% if not course or course.is_active %}checked{% endif %}
+                                   value="true">
+                            <span class="slider"></span>
+                        </label>
+                        <span>Активный курс</span>
+                    </label>
+                    <p class="form-text">Неактивные курсы не будут отображаться в списке доступных</p>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ url_for('admin_courses') }}" class="btn btn-secondary">
+                        <i class="fas fa-times mr-2"></i> Отмена
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i> Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
